@@ -1,0 +1,17 @@
+[
+  { "id": "sub-001", "name": "Marcus Rivera", "email": "m.rivera@theobriengrill.com", "createdAt": "2026-01-05T10:00:00.000Z" },
+  { "id": "sub-002", "name": "Jennifer Walsh", "email": "j.walsh@copperketchen.com", "createdAt": "2026-01-07T14:22:00.000Z" },
+  { "id": "sub-003", "name": "David Park", "email": "d.park@seoulkitchenco.com", "createdAt": "2026-01-08T09:15:00.000Z" },
+  { "id": "sub-004", "name": "Amanda Foster", "email": "a.foster@harvesttable.com", "createdAt": "2026-01-10T11:30:00.000Z" },
+  { "id": "sub-005", "name": "Carlos Mendoza", "email": "c.mendoza@elcompadre.com", "createdAt": "2026-01-12T16:00:00.000Z" },
+  { "id": "sub-006", "name": "Sarah Chen", "email": "s.chen@thetanuki.com", "createdAt": "2026-01-14T08:45:00.000Z" },
+  { "id": "sub-007", "name": "Michael Thompson", "email": "m.thompson@blueplategrille.com", "createdAt": "2026-01-15T13:10:00.000Z" },
+  { "id": "sub-008", "name": "Lauren Kim", "email": "l.kim@mapleleafbistro.com", "createdAt": "2026-01-18T10:00:00.000Z" },
+  { "id": "sub-009", "name": "Robert Nguyen", "email": "r.nguyen@phopho.com", "createdAt": "2026-01-20T15:30:00.000Z" },
+  { "id": "sub-010", "name": "Emma Santos", "email": "e.santos@thecollective.com", "createdAt": "2026-01-22T09:00:00.000Z" },
+  { "id": "sub-011", "name": "James O'Brien", "email": "j.obrien@obriensbar.com", "createdAt": "2026-01-24T14:00:00.000Z" },
+  { "id": "sub-012", "name": "Priya Patel", "email": "p.patel@spiceroute.com", "createdAt": "2026-01-26T11:20:00.000Z" },
+  { "id": "sub-013", "name": "Tyler Hoffman", "email": "t.hoffman@northshorekitchen.com", "createdAt": "2026-01-28T08:00:00.000Z" },
+  { "id": "sub-014", "name": "Rachel Goldstein", "email": "r.goldstein@thedelicafe.com", "createdAt": "2026-02-01T10:30:00.000Z" },
+  { "id": "sub-015", "name": "Antonio Caruso", "email": "a.caruso@lacasatrattoria.com", "createdAt": "2026-02-03T12:00:00.000Z" }
+]

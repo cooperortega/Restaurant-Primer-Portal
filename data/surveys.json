@@ -1,0 +1,72 @@
+[
+  {
+    "id": "srv-001",
+    "subscriberId": "sub-001",
+    "subscriberName": "Marcus Rivera",
+    "subscriberEmail": "m.rivera@theobriengrill.com",
+    "newsletterId": "nl-001",
+    "newsletterTitle": "Restaurant Primer — Vol. 1, Issue 1",
+    "rating": 5,
+    "mostValuable": "Industry Trends",
+    "wouldRecommend": "yes",
+    "futureTopics": "More deep dives on staffing strategies and retention — it's our biggest pain point right now.",
+    "comments": "Really impressed with the depth of analysis in this issue. The industry trends section was particularly well-researched.",
+    "submittedAt": "2026-02-20T11:30:00.000Z"
+  },
+  {
+    "id": "srv-002",
+    "subscriberId": "sub-002",
+    "subscriberName": "Jennifer Walsh",
+    "subscriberEmail": "j.walsh@copperketchen.com",
+    "newsletterId": "nl-001",
+    "newsletterTitle": "Restaurant Primer — Vol. 1, Issue 1",
+    "rating": 4,
+    "mostValuable": "Restaurant Operations",
+    "wouldRecommend": "yes",
+    "futureTopics": "Technology adoption in kitchens — specifically around inventory management software.",
+    "comments": "Solid first issue. Looking forward to seeing this develop.",
+    "submittedAt": "2026-02-20T14:15:00.000Z"
+  },
+  {
+    "id": "srv-003",
+    "subscriberId": "sub-004",
+    "subscriberName": "Amanda Foster",
+    "subscriberEmail": "a.foster@harvesttable.com",
+    "newsletterId": "nl-001",
+    "newsletterTitle": "Restaurant Primer — Vol. 1, Issue 1",
+    "rating": 5,
+    "mostValuable": "Financial Insights",
+    "wouldRecommend": "probably",
+    "futureTopics": "Pricing strategy and menu engineering — how to raise prices without losing regulars.",
+    "comments": "The financial section was incredibly helpful for our upcoming menu revamp. Would love even more specificity on food cost benchmarks.",
+    "submittedAt": "2026-02-22T09:45:00.000Z"
+  },
+  {
+    "id": "srv-004",
+    "subscriberId": "sub-006",
+    "subscriberName": "Sarah Chen",
+    "subscriberEmail": "s.chen@thetanuki.com",
+    "newsletterId": "nl-001",
+    "newsletterTitle": "Restaurant Primer — Vol. 1, Issue 1",
+    "rating": 4,
+    "mostValuable": "Marketing Tips",
+    "wouldRecommend": "yes",
+    "futureTopics": "Social media strategies specifically for independent restaurants, not chains.",
+    "comments": "Would love to see more real-world case studies from operators like us.",
+    "submittedAt": "2026-02-23T16:20:00.000Z"
+  },
+  {
+    "id": "srv-005",
+    "subscriberId": "sub-010",
+    "subscriberName": "Emma Santos",
+    "subscriberEmail": "e.santos@thecollective.com",
+    "newsletterId": "nl-001",
+    "newsletterTitle": "Restaurant Primer — Vol. 1, Issue 1",
+    "rating": 3,
+    "mostValuable": "Technology & Innovation",
+    "wouldRecommend": "probably",
+    "futureTopics": "Third-party delivery platform strategy — how to stay profitable on DoorDash and Uber Eats.",
+    "comments": "Good content overall, but some sections felt a bit surface-level. I'd trade breadth for more depth.",
+    "submittedAt": "2026-02-25T10:00:00.000Z"
+  }
+]
