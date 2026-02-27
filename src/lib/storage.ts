@@ -20,8 +20,13 @@ function readJson<T>(filename: string, fallback: T): T {
 }
 
 function writeJson<T>(filename: string, data: T): void {
-  ensureDataDir();
-  fs.writeFileSync(path.join(DATA_DIR, filename), JSON.stringify(data, null, 2), "utf-8");
+  try {
+    ensureDataDir();
+    fs.writeFileSync(path.join(DATA_DIR, filename), JSON.stringify(data, null, 2), "utf-8");
+  } catch {
+    // Vercel and other read-only hosts: writes fail silently.
+    // Reads still work from the bundled data files.
+  }
 }
 
 export interface Subscriber {
