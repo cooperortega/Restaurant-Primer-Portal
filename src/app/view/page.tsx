@@ -40,7 +40,6 @@ function NewsletterViewer() {
           setStatus("error");
         });
     } else {
-      // No token in URL — check for an active session (email sign-in or prior token visit)
       const session = getSession();
       if (session) {
         setData({ name: session.name, email: session.email, newsletterTitle: "Restaurant Primer — Vol. 1, Issue 1" });
@@ -54,7 +53,7 @@ function NewsletterViewer() {
 
   if (status === "loading") {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#000", color: "#969696", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", letterSpacing: "0.06em" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#f8f5f1", color: "#9c8878", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", letterSpacing: "0.06em" }}>
         Loading your newsletter...
       </div>
     );
@@ -62,13 +61,13 @@ function NewsletterViewer() {
 
   if (status === "error") {
     return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh", background: "#000", padding: "40px", textAlign: "center" }}>
-        <p style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "28px", color: "#fff", marginBottom: "16px" }}>Access Required</p>
-        <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "15px", color: "#969696", maxWidth: "420px", lineHeight: 1.7, marginBottom: "36px" }}>{errorMsg}</p>
-        <Link href="/access" style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "11px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#000", background: "#b8a88a", padding: "14px 32px", textDecoration: "none" }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh", background: "#f8f5f1", padding: "40px", textAlign: "center" }}>
+        <p style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "28px", color: "#1a1209", marginBottom: "16px" }}>Access Required</p>
+        <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "15px", color: "#6b5c4e", maxWidth: "420px", lineHeight: 1.7, marginBottom: "36px" }}>{errorMsg}</p>
+        <Link href="/access" style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "12px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#fff", background: "#1a1209", padding: "16px 36px", textDecoration: "none", fontWeight: 700 }}>
           Sign In With Email
         </Link>
-        <Link href="/" style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "13px", color: "#444", textDecoration: "none", marginTop: "20px" }}>
+        <Link href="/" style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "13px", color: "#9c8878", textDecoration: "none", marginTop: "20px" }}>
           ← Back to Home
         </Link>
       </div>
@@ -76,47 +75,65 @@ function NewsletterViewer() {
   }
 
   return (
-    <div style={{ background: "#0a0a0a", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <div style={{ background: "#f8f5f1", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
 
       {/* Top bar */}
       <header style={{
-        background: "rgba(0,0,0,0.95)",
-        borderBottom: "1px solid #1a1a1a",
+        background: "#fff",
+        borderBottom: "1px solid #e0d6ca",
         padding: "0 28px",
-        height: "64px",
+        height: "72px",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         flexShrink: 0,
-        backdropFilter: "blur(8px)",
+        boxShadow: "0 1px 8px rgba(0,0,0,0.06)",
       }}>
         <Link href="/" style={{ textDecoration: "none" }}>
-          <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "18px", color: "#fff", letterSpacing: "0.03em" }}>
+          <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "20px", color: "#1a1209", letterSpacing: "0.03em" }}>
             Restaurant Primer
           </span>
         </Link>
-        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
           {data?.name && (
-            <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "13px", color: "#969696" }}>
-              Welcome, <span style={{ color: "#b8a88a" }}>{data.name}</span>
+            <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", color: "#6b5c4e" }}>
+              Welcome, <span style={{ color: "#1a1209", fontWeight: 600 }}>{data.name}</span>
             </span>
           )}
+          <Link
+            href="/#contact"
+            style={{
+              fontFamily: "'Montserrat', Arial, sans-serif",
+              fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase",
+              color: "#6b5c4e", border: "2px solid #d0c4b8", padding: "11px 22px",
+              textDecoration: "none", transition: "border-color .2s, color .2s", fontWeight: 600,
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "#8b6634"; (e.currentTarget as HTMLElement).style.color = "#8b6634"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#d0c4b8"; (e.currentTarget as HTMLElement).style.color = "#6b5c4e"; }}
+          >
+            Home / Feedback
+          </Link>
           <a
             href="/newsletter.pdf"
             download
-            style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#fff", border: "1px solid #2a2a2a", padding: "8px 16px", textDecoration: "none", transition: "border-color .2s" }}
-            onMouseEnter={e => (e.currentTarget.style.borderColor = "#b8a88a")}
-            onMouseLeave={e => (e.currentTarget.style.borderColor = "#2a2a2a")}
+            style={{
+              fontFamily: "'Montserrat', Arial, sans-serif",
+              fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase",
+              color: "#fff", background: "#1a1209", padding: "13px 28px",
+              textDecoration: "none", fontWeight: 700, transition: "background .2s",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = "#3a2a1a")}
+            onMouseLeave={e => (e.currentTarget.style.background = "#1a1209")}
           >
-            Download PDF
+            ↓ Download PDF
           </a>
         </div>
       </header>
 
       {/* Newsletter title bar */}
-      <div style={{ background: "#111", borderBottom: "1px solid #1a1a1a", padding: "14px 28px", display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
-        <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#b8a88a", flexShrink: 0 }} />
-        <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "13px", color: "#969696", letterSpacing: "0.03em" }}>
+      <div style={{ background: "#f0ebe4", borderBottom: "1px solid #e0d6ca", padding: "12px 28px", display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
+        <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#8b6634", flexShrink: 0 }} />
+        <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "13px", color: "#6b5c4e", letterSpacing: "0.03em" }}>
           {data?.newsletterTitle}
         </span>
       </div>
@@ -125,19 +142,19 @@ function NewsletterViewer() {
       <div style={{ flex: 1, position: "relative" }}>
         {pdfError ? (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", minHeight: "60vh", padding: "60px 20px", textAlign: "center" }}>
-            <p style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "24px", color: "#fff", marginBottom: "14px" }}>Unable to display PDF in browser</p>
-            <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "15px", color: "#969696", maxWidth: "380px", lineHeight: 1.7, marginBottom: "32px" }}>
+            <p style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "24px", color: "#1a1209", marginBottom: "14px" }}>Unable to display PDF in browser</p>
+            <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "15px", color: "#6b5c4e", maxWidth: "380px", lineHeight: 1.7, marginBottom: "32px" }}>
               Your browser may not support inline PDF viewing. Use the button below to download and read the newsletter.
             </p>
-            <a href="/newsletter.pdf" download style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "11px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#000", background: "#b8a88a", padding: "14px 36px", textDecoration: "none" }}>
-              Download Newsletter
+            <a href="/newsletter.pdf" download style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "12px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#fff", background: "#1a1209", padding: "16px 40px", textDecoration: "none", fontWeight: 700 }}>
+              ↓ Download Newsletter
             </a>
           </div>
         ) : (
           <iframe
             src="/newsletter.pdf"
             title="Restaurant Primer Newsletter"
-            style={{ width: "100%", height: "calc(100vh - 128px)", border: "none", display: "block" }}
+            style={{ width: "100%", height: "calc(100vh - 120px)", border: "none", display: "block" }}
             onError={() => setPdfError(true)}
           />
         )}
@@ -150,7 +167,7 @@ function NewsletterViewer() {
 export default function ViewPage() {
   return (
     <Suspense fallback={
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#000", color: "#969696", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#f8f5f1", color: "#9c8878", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px" }}>
         Loading...
       </div>
     }>

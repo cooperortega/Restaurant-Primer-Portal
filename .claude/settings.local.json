@@ -16,7 +16,10 @@
       "Bash(git remote add origin https://github.com/cooperortega/Restaurant-Primer-Portal.git)",
       "Bash(git push -u origin main)",
       "Bash(git config user.email \"cooperortega@users.noreply.github.com\")",
-      "Bash(git config user.name \"cooperortega\")"
+      "Bash(git config user.name \"cooperortega\")",
+      "Bash(git add src/lib/storage.ts)",
+      "Bash(git commit -m \"Fix sign-in on Vercel by handling read-only filesystem\")",
+      "Bash(git push)"
     ]
   }
 }

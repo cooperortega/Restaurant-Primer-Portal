@@ -28,7 +28,7 @@ export default function AdminLoginPage() {
 
   return (
     <div style={{
-      background: "#000",
+      background: "#f8f5f1",
       minHeight: "100vh",
       display: "flex",
       flexDirection: "column",
@@ -38,19 +38,19 @@ export default function AdminLoginPage() {
       fontFamily: "'Source Sans Pro', Arial, sans-serif",
     }}>
       <Link href="/" style={{ textDecoration: "none", marginBottom: "60px" }}>
-        <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "24px", color: "#fff" }}>
+        <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "24px", color: "#1a1209" }}>
           Restaurant Primer
         </span>
       </Link>
 
-      <div style={{ background: "#0a0a0a", border: "1px solid #1e1e1e", padding: "52px 48px", width: "100%", maxWidth: "400px", textAlign: "center" }}>
-        <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.28em", textTransform: "uppercase", color: "#b8a88a", marginBottom: "14px" }}>
+      <div style={{ background: "#fff", border: "1px solid #e0d6ca", boxShadow: "0 4px 24px rgba(0,0,0,0.08)", padding: "52px 48px", width: "100%", maxWidth: "400px", textAlign: "center" }}>
+        <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.28em", textTransform: "uppercase", color: "#8b6634", marginBottom: "14px" }}>
           Staff Only
         </p>
-        <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "26px", fontWeight: 400, color: "#fff", marginBottom: "10px" }}>
+        <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "26px", fontWeight: 400, color: "#1a1209", marginBottom: "10px" }}>
           Admin Portal
         </h1>
-        <div style={{ width: "32px", height: "1px", background: "#b8a88a", margin: "0 auto 32px" }} />
+        <div style={{ width: "32px", height: "2px", background: "#8b6634", margin: "0 auto 32px" }} />
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <input
@@ -60,10 +60,10 @@ export default function AdminLoginPage() {
             onChange={e => { setPassword(e.target.value); setStatus("idle"); }}
             placeholder="Enter admin password"
             style={{
-              background: "#111",
-              border: `1px solid ${status === "error" ? "#c0392b" : "#2a2a2a"}`,
-              color: "#fff",
-              padding: "14px 18px",
+              background: "#fff",
+              border: `2px solid ${status === "error" ? "#c0392b" : "#d0c4b8"}`,
+              color: "#1a1209",
+              padding: "16px 18px",
               fontFamily: "'Source Sans Pro', Arial, sans-serif",
               fontSize: "15px",
               outline: "none",
@@ -79,23 +79,27 @@ export default function AdminLoginPage() {
             type="submit"
             disabled={status === "loading"}
             style={{
-              background: status === "loading" ? "#2a2a2a" : "#b8a88a",
+              background: status === "loading" ? "#9c8878" : "#1a1209",
               border: "none",
-              color: "#000",
-              padding: "14px",
+              color: "#fff",
+              padding: "17px",
               fontFamily: "'Montserrat', Arial, sans-serif",
-              fontSize: "11px",
+              fontSize: "12px",
               letterSpacing: "0.14em",
               textTransform: "uppercase",
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: status === "loading" ? "wait" : "pointer",
-            }}>
+              transition: "background .2s",
+            }}
+            onMouseEnter={e => { if (status !== "loading") (e.currentTarget as HTMLElement).style.background = "#3a2a1a"; }}
+            onMouseLeave={e => { if (status !== "loading") (e.currentTarget as HTMLElement).style.background = "#1a1209"; }}
+          >
             {status === "loading" ? "Signing In..." : "Sign In"}
           </button>
         </form>
       </div>
 
-      <Link href="/" style={{ marginTop: "28px", fontSize: "12px", color: "#2a2a2a", textDecoration: "none" }}>
+      <Link href="/" style={{ marginTop: "28px", fontSize: "13px", color: "#9c8878", textDecoration: "none" }}>
         ← Back to site
       </Link>
     </div>

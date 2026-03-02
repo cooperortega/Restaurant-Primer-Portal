@@ -34,7 +34,7 @@ export default function AccessPage() {
 
   return (
     <div style={{
-      background: "#000",
+      background: "#f8f5f1",
       minHeight: "100vh",
       display: "flex",
       flexDirection: "column",
@@ -46,28 +46,29 @@ export default function AccessPage() {
 
       {/* Logo */}
       <Link href="/" style={{ textDecoration: "none", marginBottom: "60px" }}>
-        <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "26px", color: "#fff", letterSpacing: "0.03em" }}>
+        <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "26px", color: "#1a1209", letterSpacing: "0.03em" }}>
           Restaurant Primer
         </span>
       </Link>
 
       {/* Card */}
       <div style={{
-        background: "#0a0a0a",
-        border: "1px solid #1e1e1e",
+        background: "#fff",
+        border: "1px solid #e0d6ca",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
         padding: "52px 48px",
         width: "100%",
-        maxWidth: "440px",
+        maxWidth: "460px",
         textAlign: "center",
       }}>
-        <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.28em", textTransform: "uppercase", color: "#b8a88a", marginBottom: "16px" }}>
+        <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.28em", textTransform: "uppercase", color: "#8b6634", marginBottom: "16px" }}>
           Newsletter Access
         </p>
-        <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "28px", fontWeight: 400, color: "#fff", marginBottom: "14px", lineHeight: 1.2 }}>
+        <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "30px", fontWeight: 400, color: "#1a1209", marginBottom: "14px", lineHeight: 1.2 }}>
           Access Your Issue
         </h1>
-        <div style={{ width: "32px", height: "1px", background: "#b8a88a", margin: "0 auto 24px" }} />
-        <p style={{ fontSize: "14px", color: "#969696", lineHeight: 1.7, marginBottom: "36px" }}>
+        <div style={{ width: "32px", height: "2px", background: "#8b6634", margin: "0 auto 24px" }} />
+        <p style={{ fontSize: "15px", color: "#6b5c4e", lineHeight: 1.7, marginBottom: "36px" }}>
           Enter the email address your invitation was sent to. Access is limited to our subscriber list.
         </p>
 
@@ -79,12 +80,12 @@ export default function AccessPage() {
             onChange={e => { setEmail(e.target.value); setStatus("idle"); setErrorMsg(""); }}
             placeholder="your@email.com"
             style={{
-              background: "#111",
-              border: `1px solid ${status === "error" ? "#c0392b" : "#2a2a2a"}`,
-              color: "#fff",
-              padding: "14px 18px",
+              background: "#fff",
+              border: `2px solid ${status === "error" ? "#c0392b" : "#d0c4b8"}`,
+              color: "#1a1209",
+              padding: "16px 18px",
               fontFamily: "'Source Sans Pro', Arial, sans-serif",
-              fontSize: "15px",
+              fontSize: "16px",
               outline: "none",
               textAlign: "center",
               width: "100%",
@@ -99,34 +100,34 @@ export default function AccessPage() {
             type="submit"
             disabled={status === "loading"}
             style={{
-              background: status === "loading" ? "#2a2a2a" : "#b8a88a",
+              background: status === "loading" ? "#9c8878" : "#1a1209",
               border: "none",
-              color: "#000",
-              padding: "15px",
+              color: "#fff",
+              padding: "18px",
               fontFamily: "'Montserrat', Arial, sans-serif",
-              fontSize: "11px",
+              fontSize: "12px",
               letterSpacing: "0.14em",
               textTransform: "uppercase",
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: status === "loading" ? "wait" : "pointer",
               marginTop: "4px",
               transition: "background .2s",
             }}
-            onMouseEnter={e => { if (status !== "loading") (e.currentTarget as HTMLElement).style.background = "#ccc0a8"; }}
-            onMouseLeave={e => { if (status !== "loading") (e.currentTarget as HTMLElement).style.background = "#b8a88a"; }}
+            onMouseEnter={e => { if (status !== "loading") (e.currentTarget as HTMLElement).style.background = "#3a2a1a"; }}
+            onMouseLeave={e => { if (status !== "loading") (e.currentTarget as HTMLElement).style.background = "#1a1209"; }}
           >
             {status === "loading" ? "Checking..." : "Open Newsletter"}
           </button>
         </form>
       </div>
 
-      <p style={{ marginTop: "32px", fontSize: "13px", color: "#333" }}>
+      <p style={{ marginTop: "32px", fontSize: "14px", color: "#6b5c4e" }}>
         Not on our list?{" "}
-        <Link href="/#contact" style={{ color: "#b8a88a", textDecoration: "none" }}>Contact us</Link>
+        <Link href="/#contact" style={{ color: "#8b6634", textDecoration: "none", fontWeight: 600 }}>Contact us</Link>
         {" "}to request access.
       </p>
 
-      <Link href="/" style={{ marginTop: "16px", fontSize: "13px", color: "#2a2a2a", textDecoration: "none" }}>
+      <Link href="/" style={{ marginTop: "16px", fontSize: "13px", color: "#9c8878", textDecoration: "none" }}>
         ← Back to Home
       </Link>
     </div>
