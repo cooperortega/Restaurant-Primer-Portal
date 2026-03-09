@@ -98,7 +98,7 @@ export default function HomePage() {
           Restaurant Primer
         </div>
         <nav style={{ display: "flex", gap: "20px", alignItems: "center" }}>
-          <a href="#newsletter" style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#8b6634", textDecoration: "none", fontWeight: 600 }}
+          <a href="#restaurantprimer" style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#8b6634", textDecoration: "none", fontWeight: 600 }}
             onMouseEnter={e => (e.currentTarget.style.opacity = "0.7")}
             onMouseLeave={e => (e.currentTarget.style.opacity = "1")}>
             Restaurant Primer
@@ -184,7 +184,7 @@ export default function HomePage() {
           }}>
             Industry intelligence for restaurant professionals.
           </p>
-          <a href="#newsletter" style={{
+          <a href="#restaurantprimer" style={{
             display: "inline-block",
             fontFamily: "'Montserrat', Arial, sans-serif",
             fontSize: "12px",
@@ -211,7 +211,7 @@ export default function HomePage() {
       </section>
 
       {/* ── NEWSLETTER SECTION ── */}
-      <section id="newsletter" style={{ background: "#fff", padding: "100px 20px", borderTop: "1px solid #e0d6ca" }}>
+      <section id="restaurantprimer" style={{ background: "#fff", padding: "100px 20px", borderTop: "1px solid #e0d6ca" }}>
         <div style={{ maxWidth: "640px", margin: "0 auto", textAlign: "center" }}>
           <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.28em", textTransform: "uppercase", color: "#8b6634", marginBottom: "20px" }}>
             Updated 2026
@@ -221,7 +221,7 @@ export default function HomePage() {
           </h2>
           <div style={{ width: "40px", height: "2px", background: "#8b6634", margin: "0 auto 28px" }} />
           <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "16px", color: "#6b5c4e", lineHeight: 1.8, marginBottom: "48px" }}>
-            While our full platform is in development, Restaurant Primer is live. Enter your email address below to access the latest issue — or click the personalized link in your invitation email.
+            Enter your email address below to access the latest issue — or click the personalized link in your invitation email.
           </p>
 
           {session ? (
