@@ -6,8 +6,10 @@ import Link from "next/link";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("Incorrect email or password. Please try again.");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -16,12 +18,14 @@ export default function AdminLoginPage() {
     const res = await fetch("/api/admin/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ email, password }),
     });
 
     if (res.ok) {
       router.push("/admin");
     } else {
+      const data = await res.json();
+      setErrorMsg(data.error ?? "Incorrect email or password. Please try again.");
       setStatus("error");
     }
   }
@@ -54,6 +58,24 @@ export default function AdminLoginPage() {
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <input
+            type="email"
+            required
+            value={email}
+            onChange={e => { setEmail(e.target.value); setStatus("idle"); }}
+            placeholder="Admin email address"
+            style={{
+              background: "#fff",
+              border: `2px solid ${status === "error" ? "#c0392b" : "#d0c4b8"}`,
+              color: "#1a1209",
+              padding: "16px 18px",
+              fontFamily: "'Source Sans Pro', Arial, sans-serif",
+              fontSize: "15px",
+              outline: "none",
+              textAlign: "center",
+              width: "100%",
+            }}
+          />
+          <input
             type="password"
             required
             value={password}
@@ -73,7 +95,7 @@ export default function AdminLoginPage() {
             }}
           />
           {status === "error" && (
-            <p style={{ fontSize: "13px", color: "#c0392b" }}>Incorrect password. Please try again.</p>
+            <p style={{ fontSize: "13px", color: "#c0392b" }}>{errorMsg}</p>
           )}
           <button
             type="submit"
