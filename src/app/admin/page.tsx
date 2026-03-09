@@ -81,9 +81,9 @@ function sortIcon(field: string, activeField: string, dir: "asc" | "desc") {
 
 const S: Record<string, React.CSSProperties> = {
   body: { background: "#f5f4f1", minHeight: "100vh", display: "flex" } as React.CSSProperties,
-  sidebar: { width: "240px", background: "#111", borderRight: "1px solid #222", display: "flex", flexDirection: "column", flexShrink: 0, position: "sticky" as const, top: 0, height: "100vh" },
+  sidebar: { width: "240px", background: "#fff", borderRight: "1px solid #e0d6ca", display: "flex", flexDirection: "column", flexShrink: 0, position: "sticky" as const, top: 0, height: "100vh" },
   main: { flex: 1, overflowY: "auto" as const, padding: "40px 48px", background: "#f5f4f1" },
-  sideLogoWrap: { padding: "28px 24px", borderBottom: "1px solid #222" },
+  sideLogoWrap: { padding: "28px 24px", borderBottom: "1px solid #e0d6ca" },
   statCard: { background: "#fff", border: "1px solid #e8e0d6", boxShadow: "0 1px 4px rgba(0,0,0,0.05)", padding: "24px 28px", flex: 1, minWidth: "160px" },
   table: { width: "100%", borderCollapse: "collapse" as const, fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "13px" },
   th: { padding: "10px 14px", textAlign: "left" as const, fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "9px", letterSpacing: "0.15em", textTransform: "uppercase" as const, color: "#8b6634", borderBottom: "1px solid #e8e0d6", whiteSpace: "nowrap" as const, background: "#faf7f4" },
@@ -279,11 +279,11 @@ export default function AdminDashboard() {
             onClick={() => router.push("/")}
             style={{ cursor: "pointer" }}
           >
-            <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "17px", color: "#fff", letterSpacing: "0.02em" }}>
+            <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "17px", color: "#1a1209", letterSpacing: "0.02em" }}>
               Restaurant Primer
             </div>
           </div>
-          <div style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "9px", letterSpacing: "0.2em", textTransform: "uppercase", color: "#444", marginTop: "5px" }}>
+          <div style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "9px", letterSpacing: "0.2em", textTransform: "uppercase", color: "#9c8878", marginTop: "5px" }}>
             Admin Portal
           </div>
         </div>
@@ -297,17 +297,17 @@ export default function AdminDashboard() {
                 display: "flex", alignItems: "center", gap: "12px",
                 width: "100%", padding: "13px 24px", border: "none",
                 cursor: "pointer", textAlign: "left",
-                borderLeft: tab === item.id ? "2px solid #b8a88a" : "2px solid transparent",
-                background: tab === item.id ? "rgba(184,168,138,0.08)" : "transparent",
+                borderLeft: tab === item.id ? "2px solid #8b6634" : "2px solid transparent",
+                background: tab === item.id ? "rgba(139,102,52,0.07)" : "transparent",
                 transition: "background .15s",
               } as React.CSSProperties}
             >
-              <span style={{ fontSize: "14px", color: tab === item.id ? "#b8a88a" : "#555" }}>{item.icon}</span>
+              <span style={{ fontSize: "14px", color: tab === item.id ? "#8b6634" : "#9c8878" }}>{item.icon}</span>
               <span style={{
                 fontFamily: "'Montserrat', Arial, sans-serif",
                 fontSize: "11px",
                 letterSpacing: "0.08em",
-                color: tab === item.id ? "#fff" : "#888",
+                color: tab === item.id ? "#1a1209" : "#6b5c4e",
                 fontWeight: tab === item.id ? 600 : 400,
               }}>
                 {item.label}
@@ -316,8 +316,11 @@ export default function AdminDashboard() {
           ))}
         </nav>
 
-        <div style={{ padding: "20px 24px", borderTop: "1px solid #222" }}>
-          <button onClick={handleLogout} style={{ ...S.btnGhost, width: "100%", fontSize: "9px", padding: "9px 12px", background: "transparent", border: "1px solid #333", color: "#666" }}>
+        <div style={{ padding: "20px 24px", borderTop: "1px solid #e0d6ca", display: "flex", flexDirection: "column", gap: "10px" }}>
+          <button onClick={() => router.push("/")} style={{ ...S.btn, width: "100%", fontSize: "9px", padding: "10px 12px", background: "#8b6634", color: "#fff", letterSpacing: "0.12em" }}>
+            ← Back to Site
+          </button>
+          <button onClick={handleLogout} style={{ ...S.btnGhost, width: "100%", fontSize: "9px", padding: "9px 12px", background: "transparent", border: "1px solid #d0c4b8", color: "#9c8878" }}>
             Sign Out
           </button>
         </div>

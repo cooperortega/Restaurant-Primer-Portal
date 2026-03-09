@@ -101,7 +101,7 @@ export default function HomePage() {
           <a href="#newsletter" style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#8b6634", textDecoration: "none", fontWeight: 600 }}
             onMouseEnter={e => (e.currentTarget.style.opacity = "0.7")}
             onMouseLeave={e => (e.currentTarget.style.opacity = "1")}>
-            Newsletter
+            Restaurant Primer
           </a>
           <a href="#contact" style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#6b5c4e", textDecoration: "none" }}
             onMouseEnter={e => (e.currentTarget.style.opacity = "0.7")}
@@ -114,7 +114,7 @@ export default function HomePage() {
                 Hi, <span style={{ color: "#8b6634", fontWeight: 600 }}>{session.name.split(" ")[0]}</span>
               </span>
               <Link href="/view" style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#fff", background: "#1a1209", padding: "9px 20px", textDecoration: "none", fontWeight: 700 }}>
-                Open Newsletter
+                Open Restaurant Primer
               </Link>
               <button onClick={handleSignOut} style={{ background: "none", border: "none", fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#9c8878", cursor: "pointer", padding: 0 }}>
                 Sign out
@@ -154,13 +154,13 @@ export default function HomePage() {
         <div style={{ position: "relative", textAlign: "center", padding: "0 20px" }}>
           <p style={{
             fontFamily: "'Montserrat', Arial, sans-serif",
-            fontSize: "11px",
+            fontSize: "18px",
             letterSpacing: "0.25em",
             textTransform: "uppercase",
             color: "#b8a88a",
             marginBottom: "20px",
           }}>
-            Coming Soon
+            2026
           </p>
           <h1 style={{
             fontFamily: "'Playfair Display', Georgia, serif",
@@ -200,7 +200,7 @@ export default function HomePage() {
           }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.25)"; (e.currentTarget as HTMLElement).style.borderColor = "#fff"; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.15)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.7)"; }}>
-            Access Our Newsletter
+            Access Restaurant Primer
           </a>
         </div>
 
@@ -214,14 +214,14 @@ export default function HomePage() {
       <section id="newsletter" style={{ background: "#fff", padding: "100px 20px", borderTop: "1px solid #e0d6ca" }}>
         <div style={{ maxWidth: "640px", margin: "0 auto", textAlign: "center" }}>
           <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.28em", textTransform: "uppercase", color: "#8b6634", marginBottom: "20px" }}>
-            Latest Issue
+            Updated 2026
           </p>
           <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#1a1209", marginBottom: "20px", lineHeight: 1.2 }}>
-            Our Newsletter
+            Restaurant Primer
           </h2>
           <div style={{ width: "40px", height: "2px", background: "#8b6634", margin: "0 auto 28px" }} />
           <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "16px", color: "#6b5c4e", lineHeight: 1.8, marginBottom: "48px" }}>
-            While our full platform is in development, our newsletter is live. Enter your email address below to access the latest issue — or click the personalized link in your invitation email.
+            While our full platform is in development, Restaurant Primer is live. Enter your email address below to access the latest issue — or click the personalized link in your invitation email.
           </p>
 
           {session ? (
@@ -243,7 +243,7 @@ export default function HomePage() {
                   textDecoration: "none",
                   fontWeight: 700,
                 }}>
-                  Open Newsletter →
+                  Open Restaurant Primer →
                 </Link>
               </div>
               <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "13px", color: "#9c8878" }}>
