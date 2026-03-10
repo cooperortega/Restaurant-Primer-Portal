@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import * as XLSX from "xlsx";
 
-type Tab = "overview" | "logs" | "subscribers" | "generate" | "surveys" | "email" | "requests" | "admins";
+type Tab = "overview" | "logs" | "subscribers" | "generate" | "surveys" | "email" | "messages" | "admins";
 
 interface Log {
   id: string;
@@ -38,12 +38,11 @@ interface Survey {
   submittedAt: string;
 }
 
-interface AccessRequest {
+interface ContactMessage {
   id: string;
   name: string;
   email: string;
   message: string;
-  status: "pending" | "added" | "granted" | "dismissed";
   submittedAt: string;
 }
 
@@ -111,8 +110,7 @@ export default function AdminDashboard() {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [inviteStatus, setInviteStatus] = useState<Record<string, "loading" | "sent" | "error">>({});
   const [surveys, setSurveys] = useState<Survey[]>([]);
-  const [accessRequests, setAccessRequests] = useState<AccessRequest[]>([]);
-  const [requestActionStatus, setRequestActionStatus] = useState<Record<string, "loading" | "done" | "error">>({});
+  const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
   const [expandedSurvey, setExpandedSurvey] = useState<string | null>(null);
@@ -169,11 +167,11 @@ export default function AdminDashboard() {
   const [subSearch, setSubSearch] = useState("");
 
   const fetchData = useCallback(async () => {
-    const [logsRes, subsRes, survRes, reqRes, adminsRes] = await Promise.all([
+    const [logsRes, subsRes, survRes, msgsRes, adminsRes] = await Promise.all([
       fetch("/api/admin/logs"),
       fetch("/api/admin/subscribers"),
       fetch("/api/admin/surveys"),
-      fetch("/api/admin/access-requests"),
+      fetch("/api/admin/contact-messages"),
       fetch("/api/admin/admins"),
     ]);
     if (logsRes.status === 401 || subsRes.status === 401) {
@@ -183,12 +181,12 @@ export default function AdminDashboard() {
     const logsData = await logsRes.json();
     const subsData = await subsRes.json();
     const survData = await survRes.json();
-    const reqData = await reqRes.json();
+    const msgsData = await msgsRes.json();
     const adminsData = await adminsRes.json();
     setLogs(logsData.logs ?? []);
     setSubscribers(subsData.subscribers ?? []);
     setSurveys(survData.surveys ?? []);
-    setAccessRequests(reqData.requests ?? []);
+    setContactMessages(msgsData.messages ?? []);
     setAdminUsers(adminsData.admins ?? []);
     setLoading(false);
     setAuthChecked(true);
@@ -335,35 +333,6 @@ export default function AdminDashboard() {
     setEmailResult(null);
   }
 
-  async function handleRequestAction(id: string, action: "add" | "invite" | "dismiss") {
-    setRequestActionStatus(prev => ({ ...prev, [id]: "loading" }));
-    const res = await fetch("/api/admin/access-requests", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, action }),
-    });
-    if (res.ok) {
-      setRequestActionStatus(prev => ({ ...prev, [id]: "done" }));
-      fetchData();
-    } else {
-      setRequestActionStatus(prev => ({ ...prev, [id]: "error" }));
-    }
-  }
-
-  const [bulkStatus, setBulkStatus] = useState<"idle" | "loading" | "done">("idle");
-
-  async function handleBulkAction(action: "add_all" | "invite_all") {
-    setBulkStatus("loading");
-    await fetch("/api/admin/access-requests", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action }),
-    });
-    setBulkStatus("done");
-    fetchData();
-    setTimeout(() => setBulkStatus("idle"), 2000);
-  }
-
   function copyToClipboard(text: string) {
     navigator.clipboard.writeText(text);
     setCopied(true);
@@ -423,11 +392,9 @@ export default function AdminDashboard() {
     return subSortDir === "asc" ? cmp : -cmp;
   });
 
-  const pendingRequests = accessRequests.filter(r => r.status === "pending").length;
-
   const navItems: { id: Tab; label: string; icon: string; badge?: number }[] = [
     { id: "overview", label: "Overview", icon: "▦" },
-    { id: "requests", label: "Access Requests", icon: "⊞", badge: pendingRequests || undefined },
+    { id: "messages", label: "Contact Messages", icon: "✉", badge: contactMessages.length || undefined },
     { id: "logs", label: "Access Logs", icon: "≡" },
     { id: "subscribers", label: "Subscribers", icon: "◎" },
     { id: "surveys", label: "Feedback", icon: "◈" },
@@ -799,16 +766,6 @@ export default function AdminDashboard() {
                           >
                             {inviteStatus[sub.id] === "loading" ? "Sending..." : inviteStatus[sub.id] === "sent" ? "Invited!" : inviteStatus[sub.id] === "error" ? "Failed" : "Invite"}
                           </button>
-                          <button
-                            onClick={async () => {
-                              if (!confirm(`Remove ${sub.name} from subscribers?`)) return;
-                              await fetch("/api/admin/subscribers", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: sub.id }) });
-                              setSubscribers(prev => prev.filter(s => s.id !== sub.id));
-                            }}
-                            style={{ ...S.btn, fontSize: "9px", padding: "6px 12px", background: "#c0392b" }}
-                          >
-                            Remove
-                          </button>
                         </td>
                       </tr>
                     );
@@ -829,106 +786,44 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* ────────────── ACCESS REQUESTS ────────────── */}
-        {tab === "requests" && (() => {
-          const pending = accessRequests.filter(r => r.status === "pending");
-          const added = accessRequests.filter(r => r.status === "added");
-          const statusBg: Record<string, string> = { pending: "#fff3cd", added: "#cce5ff", granted: "#d4edda", dismissed: "#f0ebe4" };
-          const statusColor: Record<string, string> = { pending: "#856404", added: "#004085", granted: "#155724", dismissed: "#9c8878" };
-          const statusBorder: Record<string, string> = { pending: "#ffc107", added: "#b8daff", granted: "#28a745", dismissed: "#d0c4b8" };
-          return (
-            <div>
-              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", flexWrap: "wrap" as const, gap: "16px" }}>
-                <div>
-                  <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "24px", fontWeight: 400, color: "#1a1209", margin: "0 0 6px" }}>Access Requests</h2>
-                  <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", color: "#9c8878", margin: 0 }}>
-                    Submitted via the Contact form. Add users first, then send invite links.
-                  </p>
-                </div>
-                <div style={{ display: "flex", gap: "10px" }}>
-                  {pending.length > 0 && (
-                    <button
-                      onClick={() => handleBulkAction("add_all")}
-                      disabled={bulkStatus === "loading"}
-                      style={{ ...S.btn, padding: "10px 20px", fontSize: "9px", background: "#4a3728" }}
-                    >
-                      {bulkStatus === "loading" ? "..." : `Add All Users (${pending.length})`}
-                    </button>
-                  )}
-                  {added.length > 0 && (
-                    <button
-                      onClick={() => handleBulkAction("invite_all")}
-                      disabled={bulkStatus === "loading"}
-                      style={{ ...S.btn, padding: "10px 20px", fontSize: "9px" }}
-                    >
-                      {bulkStatus === "loading" ? "..." : `Invite All Users (${added.length})`}
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {accessRequests.length === 0 ? (
-                <div style={{ background: "#fff", border: "1px solid #e8e0d6", padding: "48px", textAlign: "center", color: "#9c8878", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px" }}>
-                  No access requests yet.
-                </div>
-              ) : (
-                <table style={S.table}>
-                  <thead>
-                    <tr>
-                      <th style={S.th}>Name</th>
-                      <th style={S.th}>Email</th>
-                      <th style={S.th}>Message</th>
-                      <th style={S.th}>Submitted</th>
-                      <th style={S.th}>Status</th>
-                      <th style={S.th}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {accessRequests.map(req => {
-                      const isLoading = requestActionStatus[req.id] === "loading";
-                      return (
-                        <tr key={req.id} style={{ background: req.status === "pending" || req.status === "added" ? "#fff" : "#faf7f4" }}>
-                          <td style={S.td}><span style={{ fontWeight: 600 }}>{req.name}</span></td>
-                          <td style={S.td}>{req.email}</td>
-                          <td style={{ ...S.td, maxWidth: "220px", color: "#6b5c4e", fontSize: "13px" }}>{req.message || "—"}</td>
-                          <td style={{ ...S.td, whiteSpace: "nowrap" as const, color: "#9c8878" }}>{formatDate(req.submittedAt)}</td>
-                          <td style={S.td}>
-                            <span style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "9px", letterSpacing: "0.1em", textTransform: "uppercase" as const, fontWeight: 700, padding: "3px 8px", background: statusBg[req.status], color: statusColor[req.status], border: `1px solid ${statusBorder[req.status]}` }}>
-                              {req.status}
-                            </span>
-                          </td>
-                          <td style={S.td}>
-                            {req.status === "pending" && (
-                              <div style={{ display: "flex", gap: "8px" }}>
-                                <button onClick={() => handleRequestAction(req.id, "add")} disabled={isLoading} style={{ ...S.btn, padding: "8px 16px", fontSize: "9px", background: "#4a3728" }}>
-                                  {isLoading ? "..." : "Add User"}
-                                </button>
-                                <button onClick={() => handleRequestAction(req.id, "dismiss")} disabled={isLoading} style={{ ...S.btnGhost, padding: "7px 14px", fontSize: "9px" }}>
-                                  Dismiss
-                                </button>
-                              </div>
-                            )}
-                            {req.status === "added" && (
-                              <button onClick={() => handleRequestAction(req.id, "invite")} disabled={isLoading} style={{ ...S.btn, padding: "8px 16px", fontSize: "9px" }}>
-                                {isLoading ? "..." : "Invite User"}
-                              </button>
-                            )}
-                            {req.status === "granted" && (
-                              <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "12px", color: "#9c8878" }}>Invite sent</span>
-                            )}
-                            {req.status === "dismissed" && (
-                              <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "12px", color: "#9c8878" }}>Dismissed</span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
+        {/* ────────────── CONTACT MESSAGES ────────────── */}
+        {tab === "messages" && (
+          <div>
+            <div style={{ marginBottom: "28px" }}>
+              <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "24px", fontWeight: 400, color: "#1a1209", margin: "0 0 6px" }}>Contact Messages</h2>
+              <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", color: "#9c8878", margin: 0 }}>
+                Messages submitted via the Contact form on the home page.
+              </p>
             </div>
-          );
-        })()}
+
+            {contactMessages.length === 0 ? (
+              <div style={{ background: "#fff", border: "1px solid #e8e0d6", padding: "48px", textAlign: "center", color: "#9c8878", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px" }}>
+                No contact messages yet.
+              </div>
+            ) : (
+              <table style={S.table}>
+                <thead>
+                  <tr>
+                    <th style={S.th}>Name</th>
+                    <th style={S.th}>Email</th>
+                    <th style={S.th}>Message</th>
+                    <th style={S.th}>Submitted</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {contactMessages.map(msg => (
+                    <tr key={msg.id} style={{ background: "#fff" }}>
+                      <td style={S.td}><span style={{ fontWeight: 600 }}>{msg.name}</span></td>
+                      <td style={S.td}>{msg.email}</td>
+                      <td style={{ ...S.td, maxWidth: "340px", color: "#6b5c4e", fontSize: "13px", lineHeight: 1.5 }}>{msg.message || "—"}</td>
+                      <td style={{ ...S.td, whiteSpace: "nowrap" as const, color: "#9c8878" }}>{formatDateTime(msg.submittedAt)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
 
         {/* ────────────── SURVEYS ────────────── */}
         {tab === "surveys" && (() => {

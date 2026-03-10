@@ -121,6 +121,14 @@ export interface AccessRequest {
   submittedAt: string;
 }
 
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  submittedAt: string;
+}
+
 export interface AdminUser {
   id: string;
   name: string;
@@ -257,6 +265,26 @@ export const db = {
         all[idx].status = status;
         await writeData("access_requests", all);
       }
+    },
+  },
+
+  contactMessages: {
+    getAll: async (): Promise<ContactMessage[]> => {
+      const all = await readData<ContactMessage[]>("contact_messages", []);
+      return all.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+    },
+    create: async (name: string, email: string, message: string): Promise<ContactMessage> => {
+      const all = await readData<ContactMessage[]>("contact_messages", []);
+      const msg: ContactMessage = {
+        id: "msg-" + Date.now(),
+        name,
+        email,
+        message,
+        submittedAt: new Date().toISOString(),
+      };
+      all.push(msg);
+      await writeData("contact_messages", all);
+      return msg;
     },
   },
 

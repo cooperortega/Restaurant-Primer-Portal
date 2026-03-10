@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
+import { db } from "@/lib/storage";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -15,6 +16,8 @@ export async function POST(req: NextRequest) {
 
   if (!name?.trim() || !email?.trim())
     return NextResponse.json({ error: "Name and email are required." }, { status: 400 });
+
+  await db.contactMessages.create(name.trim(), email.trim(), message?.trim() ?? "");
 
   const fromAddress = process.env.RESEND_FROM_EMAIL ?? "Restaurant Primer <admin@restaurantprimer.com>";
 
