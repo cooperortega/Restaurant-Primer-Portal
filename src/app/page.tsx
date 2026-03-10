@@ -342,7 +342,8 @@ export default function HomePage() {
             {contactStatus === "sent" ? (
               <div style={{ padding: "40px 20px", background: "#fff", border: "1px solid #e0d6ca" }}>
                 <p style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "22px", color: "#8b6634", marginBottom: "10px" }}>Thank you.</p>
-                <p style={{ color: "#6b5c4e", fontSize: "15px" }}>We'll be in touch soon.</p>
+                <p style={{ color: "#6b5c4e", fontSize: "15px", marginBottom: "10px" }}>We'll be in touch soon.</p>
+                <p style={{ color: "#9c8878", fontSize: "13px" }}>When you receive your invitation, please check your spam or junk folder if it doesn't appear in your inbox.</p>
               </div>
             ) : (
               <form onSubmit={handleContactSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px", textAlign: "left" }}>
