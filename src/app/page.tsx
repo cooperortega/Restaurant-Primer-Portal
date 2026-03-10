@@ -10,6 +10,9 @@ export default function HomePage() {
   const [session, setSessionState] = useState<SubscriberSession | null>(null);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [nlFirstName, setNlFirstName] = useState("");
+  const [nlLastName, setNlLastName] = useState("");
+  const [nlStep, setNlStep] = useState<"email" | "register">("email");
   const [nlStatus, setNlStatus] = useState<"idle" | "loading" | "error">("idle");
   const [nlError, setNlError] = useState("");
 
@@ -68,13 +71,21 @@ export default function HomePage() {
     e.preventDefault();
     setNlStatus("loading");
     setNlError("");
+    const body: Record<string, string> = { email: newsletterEmail };
+    if (nlStep === "register") {
+      body.firstName = nlFirstName;
+      body.lastName = nlLastName;
+    }
     const res = await fetch("/api/access", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: newsletterEmail }),
+      body: JSON.stringify(body),
     });
     const data = await res.json();
-    if (res.ok) {
+    if (res.ok && data.needsName) {
+      setNlStep("register");
+      setNlStatus("idle");
+    } else if (res.ok) {
       setSession({ name: data.name, email: data.email });
       setSessionState({ name: data.name, email: data.email });
       router.push("/view");
@@ -239,6 +250,8 @@ export default function HomePage() {
           <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "16px", color: "#6b5c4e", lineHeight: 1.8, marginBottom: "48px" }}>
             {session
               ? "Click below to access the Primer."
+              : nlStep === "register"
+              ? "One more step to get access."
               : "Enter your email address below to access the updated Restaurant Primer — or click the personalized link in your invitation email."}
           </p>
 
@@ -271,8 +284,8 @@ export default function HomePage() {
                 </button>
               </p>
             </div>
-          ) : (
-            /* ── Email sign-in form ── */
+          ) : nlStep === "email" ? (
+            /* ── Step 1: Email ── */
             <div>
               <form onSubmit={handleNewsletterAccess} style={{ display: "flex", gap: "0", maxWidth: "480px", margin: "0 auto" }}>
                 <input
@@ -321,10 +334,89 @@ export default function HomePage() {
                   {nlError}
                 </p>
               )}
-              <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "13px", color: "#9c8878", marginTop: "20px" }}>
-                Access is limited to invited subscribers.{" "}
-                <a href="#contact" style={{ color: "#8b6634", textDecoration: "none", fontWeight: 600 }}>Contact us</a> to be added.
+            </div>
+          ) : (
+            /* ── Step 2: Register new subscriber ── */
+            <div style={{ maxWidth: "480px", margin: "0 auto" }}>
+              <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", color: "#6b5c4e", marginBottom: "24px", lineHeight: 1.7 }}>
+                No account found for <span style={{ color: "#1a1209", fontWeight: 600 }}>{newsletterEmail}</span>. Enter your name below to get instant access.
               </p>
+              <form onSubmit={handleNewsletterAccess} style={{ display: "flex", flexDirection: "column", gap: "0" }}>
+                <div style={{ display: "flex", gap: "0" }}>
+                  <input
+                    type="text"
+                    required
+                    autoFocus
+                    value={nlFirstName}
+                    onChange={e => { setNlFirstName(e.target.value); setNlError(""); }}
+                    placeholder="First name"
+                    style={{
+                      flex: 1,
+                      background: "#fff",
+                      border: "2px solid #d0c4b8",
+                      borderRight: "1px solid #d0c4b8",
+                      borderBottom: "none",
+                      color: "#1a1209",
+                      padding: "16px 20px",
+                      fontFamily: "'Source Sans Pro', Arial, sans-serif",
+                      fontSize: "15px",
+                      outline: "none",
+                    }}
+                  />
+                  <input
+                    type="text"
+                    required
+                    value={nlLastName}
+                    onChange={e => { setNlLastName(e.target.value); setNlError(""); }}
+                    placeholder="Last name"
+                    style={{
+                      flex: 1,
+                      background: "#fff",
+                      border: "2px solid #d0c4b8",
+                      borderLeft: "1px solid #d0c4b8",
+                      borderBottom: "none",
+                      color: "#1a1209",
+                      padding: "16px 20px",
+                      fontFamily: "'Source Sans Pro', Arial, sans-serif",
+                      fontSize: "15px",
+                      outline: "none",
+                    }}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={nlStatus === "loading"}
+                  style={{
+                    background: nlStatus === "loading" ? "#9c8878" : "#1a1209",
+                    border: "none",
+                    color: "#fff",
+                    padding: "16px 28px",
+                    fontFamily: "'Montserrat', Arial, sans-serif",
+                    fontSize: "12px",
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    cursor: nlStatus === "loading" ? "wait" : "pointer",
+                    fontWeight: 700,
+                    transition: "background .2s",
+                    width: "100%",
+                  }}
+                  onMouseEnter={e => { if (nlStatus !== "loading") (e.currentTarget as HTMLElement).style.background = "#3a2a1a"; }}
+                  onMouseLeave={e => { if (nlStatus !== "loading") (e.currentTarget as HTMLElement).style.background = "#1a1209"; }}
+                >
+                  {nlStatus === "loading" ? "Creating account..." : "Get Access"}
+                </button>
+              </form>
+              {nlStatus === "error" && (
+                <p style={{ color: "#c0392b", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", marginTop: "16px" }}>
+                  {nlError}
+                </p>
+              )}
+              <button
+                onClick={() => { setNlStep("email"); setNlStatus("idle"); setNlError(""); }}
+                style={{ background: "none", border: "none", color: "#9c8878", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "13px", cursor: "pointer", marginTop: "16px", padding: 0, textDecoration: "underline" }}
+              >
+                ← Use a different email
+              </button>
             </div>
           )}
         </div>
