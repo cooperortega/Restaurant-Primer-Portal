@@ -233,7 +233,9 @@ export default function HomePage() {
           </h2>
           <div style={{ width: "40px", height: "2px", background: "#8b6634", margin: "0 auto 28px" }} />
           <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "16px", color: "#6b5c4e", lineHeight: 1.8, marginBottom: "48px" }}>
-            Enter your email address below to access the latest issue — or click the personalized link in your invitation email.
+            {session
+              ? "Click below to access the Primer."
+              : "Enter your email address below to access the latest issue — or click the personalized link in your invitation email."}
           </p>
 
           {session ? (
@@ -325,46 +327,45 @@ export default function HomePage() {
       </section>
 
       {/* ── CONTACT / FEEDBACK SECTION ── */}
-      <section id="contact" style={{ background: "#f8f5f1", padding: "100px 20px", borderTop: "1px solid #e0d6ca" }}>
-        <div style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center" }}>
+      {!session && (
+        <section id="contact" style={{ background: "#f8f5f1", padding: "100px 20px", borderTop: "1px solid #e0d6ca" }}>
+          <div style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center" }}>
+            <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.28em", textTransform: "uppercase", color: "#8b6634", marginBottom: "20px" }}>
+              Get In Touch
+            </p>
+            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 400, marginBottom: "20px", color: "#1a1209" }}>
+              Drop us a line!
+            </h2>
+            <div style={{ width: "40px", height: "2px", background: "#8b6634", margin: "0 auto 48px" }} />
 
-          <>
-              <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.28em", textTransform: "uppercase", color: "#8b6634", marginBottom: "20px" }}>
-                Get In Touch
-              </p>
-              <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 400, marginBottom: "20px", color: "#1a1209" }}>
-                Drop us a line!
-              </h2>
-              <div style={{ width: "40px", height: "2px", background: "#8b6634", margin: "0 auto 48px" }} />
-
-              {contactStatus === "sent" ? (
-                <div style={{ padding: "40px 20px", background: "#fff", border: "1px solid #e0d6ca" }}>
-                  <p style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "22px", color: "#8b6634", marginBottom: "10px" }}>Thank you.</p>
-                  <p style={{ color: "#6b5c4e", fontSize: "15px" }}>We'll be in touch soon.</p>
-                </div>
-              ) : (
-                <form onSubmit={handleContactSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px", textAlign: "left" }}>
-                  <input type="text" required value={contactForm.name} onChange={e => setContactForm(p => ({ ...p, name: e.target.value }))} placeholder="Your name"
-                    style={{ background: "#fff", border: "2px solid #d0c4b8", color: "#1a1209", padding: "14px 18px", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "15px", outline: "none", width: "100%" }} />
-                  <input type="email" required value={contactForm.email} onChange={e => setContactForm(p => ({ ...p, email: e.target.value }))} placeholder="Your email"
-                    style={{ background: "#fff", border: "2px solid #d0c4b8", color: "#1a1209", padding: "14px 18px", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "15px", outline: "none", width: "100%" }} />
-                  <textarea rows={4} value={contactForm.message} onChange={e => setContactForm(p => ({ ...p, message: e.target.value }))} placeholder="Your message"
-                    style={{ background: "#fff", border: "2px solid #d0c4b8", color: "#1a1209", padding: "14px 18px", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "15px", outline: "none", width: "100%", resize: "vertical" }} />
-                  <label style={{ display: "flex", alignItems: "flex-start", gap: "10px", cursor: "pointer" }}>
-                    <input type="checkbox" checked={contactForm.newsletter} onChange={e => setContactForm(p => ({ ...p, newsletter: e.target.checked }))} style={{ marginTop: "3px", accentColor: "#8b6634", width: "16px", height: "16px" }} />
-                    <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", color: "#6b5c4e", lineHeight: 1.5 }}>Add me to the Restaurant Primer newsletter list</span>
-                  </label>
-                  <button type="submit"
-                    style={{ background: "#1a1209", border: "none", color: "#fff", padding: "16px", fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "12px", letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer", marginTop: "8px", fontWeight: 700, transition: "background .2s" }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#3a2a1a"; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "#1a1209"; }}>
-                    Send
-                  </button>
-                </form>
-              )}
-            </>
-        </div>
-      </section>
+            {contactStatus === "sent" ? (
+              <div style={{ padding: "40px 20px", background: "#fff", border: "1px solid #e0d6ca" }}>
+                <p style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "22px", color: "#8b6634", marginBottom: "10px" }}>Thank you.</p>
+                <p style={{ color: "#6b5c4e", fontSize: "15px" }}>We'll be in touch soon.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleContactSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px", textAlign: "left" }}>
+                <input type="text" required value={contactForm.name} onChange={e => setContactForm(p => ({ ...p, name: e.target.value }))} placeholder="Your name"
+                  style={{ background: "#fff", border: "2px solid #d0c4b8", color: "#1a1209", padding: "14px 18px", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "15px", outline: "none", width: "100%" }} />
+                <input type="email" required value={contactForm.email} onChange={e => setContactForm(p => ({ ...p, email: e.target.value }))} placeholder="Your email"
+                  style={{ background: "#fff", border: "2px solid #d0c4b8", color: "#1a1209", padding: "14px 18px", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "15px", outline: "none", width: "100%" }} />
+                <textarea rows={4} value={contactForm.message} onChange={e => setContactForm(p => ({ ...p, message: e.target.value }))} placeholder="Your message"
+                  style={{ background: "#fff", border: "2px solid #d0c4b8", color: "#1a1209", padding: "14px 18px", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "15px", outline: "none", width: "100%", resize: "vertical" }} />
+                <label style={{ display: "flex", alignItems: "flex-start", gap: "10px", cursor: "pointer" }}>
+                  <input type="checkbox" checked={contactForm.newsletter} onChange={e => setContactForm(p => ({ ...p, newsletter: e.target.checked }))} style={{ marginTop: "3px", accentColor: "#8b6634", width: "16px", height: "16px" }} />
+                  <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", color: "#6b5c4e", lineHeight: 1.5 }}>Add me to the Restaurant Primer newsletter list</span>
+                </label>
+                <button type="submit"
+                  style={{ background: "#1a1209", border: "none", color: "#fff", padding: "16px", fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "12px", letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer", marginTop: "8px", fontWeight: 700, transition: "background .2s" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#3a2a1a"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "#1a1209"; }}>
+                  Send
+                </button>
+              </form>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* ── PROFESSIONAL FEEDBACK SURVEY ── */}
       <section style={{ background: "#fff", borderTop: "1px solid #e0d6ca", padding: "100px 20px" }}>
