@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { db } from "@/lib/storage";
 
-const ALLOWED_EMAILS = [
+const FALLBACK_EMAILS = [
   "jeb@guideboatadvisors.com",
   "justin@guideboatadvisors.com",
   "cooper@guideboatadvisors.com",
@@ -11,7 +12,13 @@ const ALLOWED_EMAILS = [
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
 
-  if (!ALLOWED_EMAILS.includes((email ?? "").toLowerCase().trim())) {
+  const normalizedEmail = (email ?? "").toLowerCase().trim();
+  const adminUsers = await db.admins.getAll();
+  const allowedEmails = adminUsers.length > 0
+    ? adminUsers.map(a => a.email.toLowerCase())
+    : FALLBACK_EMAILS;
+
+  if (!allowedEmails.includes(normalizedEmail)) {
     return NextResponse.json({ error: "This email is not authorized for admin access." }, { status: 401 });
   }
 

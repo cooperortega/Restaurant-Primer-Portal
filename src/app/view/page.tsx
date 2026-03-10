@@ -10,6 +10,7 @@ interface ViewerData {
   name: string;
   email: string;
   newsletterTitle: string;
+  isAdmin?: boolean;
 }
 
 
@@ -32,7 +33,7 @@ function NewsletterViewer() {
             setStatus("error");
           } else {
             setSession({ name: d.name, email: d.email });
-            setData(d);
+            setData({ ...d, isAdmin: d.isAdmin ?? false });
             setStatus("ready");
           }
         })
@@ -100,6 +101,16 @@ function NewsletterViewer() {
             <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", color: "#6b5c4e" }}>
               Welcome, <span style={{ color: "#1a1209", fontWeight: 600 }}>{data.name}</span>
             </span>
+          )}
+          {data?.isAdmin && (
+            <Link
+              href="/admin"
+              style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#8b6634", border: "2px solid #8b6634", padding: "10px 20px", textDecoration: "none", fontWeight: 600 }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#8b6634"; (e.currentTarget as HTMLElement).style.color = "#fff"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#8b6634"; }}
+            >
+              Admin Portal
+            </Link>
           )}
           <Link
             href="/#contact"

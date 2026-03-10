@@ -38,9 +38,25 @@ export async function POST(req: NextRequest) {
     userAgent: ua,
   });
 
-  return NextResponse.json({
+  const adminUsers = await db.admins.getAll();
+  const isAdmin = adminUsers.some(a => a.email.toLowerCase() === subscriber.email.toLowerCase());
+
+  const res = NextResponse.json({
     name: subscriber.name,
     email: subscriber.email,
     newsletterId: newsletter.id,
+    isAdmin,
   });
+
+  if (isAdmin) {
+    res.cookies.set("admin_auth", "1", {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 8,
+      path: "/",
+    });
+  }
+
+  return res;
 }
