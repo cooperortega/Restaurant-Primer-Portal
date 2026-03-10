@@ -134,7 +134,8 @@ export default function AdminDashboard() {
   const [copied, setCopied] = useState(false);
 
   // Add subscriber form
-  const [addName, setAddName] = useState("");
+  const [addFirstName, setAddFirstName] = useState("");
+  const [addLastName, setAddLastName] = useState("");
   const [addEmail, setAddEmail] = useState("");
   const [addStatus, setAddStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [addError, setAddError] = useState("");
@@ -210,12 +211,12 @@ export default function AdminDashboard() {
     const res = await fetch("/api/admin/subscribers", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: addName, email: addEmail }),
+      body: JSON.stringify({ name: `${addFirstName.trim()} ${addLastName.trim()}`.trim(), email: addEmail }),
     });
     const data = await res.json();
     if (res.ok) {
       setAddStatus("done");
-      setAddName(""); setAddEmail("");
+      setAddFirstName(""); setAddLastName(""); setAddEmail("");
       fetchData();
     } else {
       setAddStatus("error");
@@ -597,7 +598,8 @@ export default function AdminDashboard() {
             <div style={{ background: "#fff", border: "1px solid #e8e0d6", padding: "24px 28px", marginBottom: "28px" }}>
               <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "9px", letterSpacing: "0.2em", textTransform: "uppercase", color: "#8b6634", marginBottom: "16px" }}>Add New Subscriber</p>
               <form onSubmit={handleAddSubscriber} style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                <input type="text" required value={addName} onChange={e => { setAddName(e.target.value); setAddStatus("idle"); }} placeholder="Full name" style={{ ...S.input, maxWidth: "200px" }} />
+                <input type="text" required value={addFirstName} onChange={e => { setAddFirstName(e.target.value); setAddStatus("idle"); }} placeholder="First name" style={{ ...S.input, maxWidth: "160px" }} />
+                <input type="text" required value={addLastName} onChange={e => { setAddLastName(e.target.value); setAddStatus("idle"); }} placeholder="Last name" style={{ ...S.input, maxWidth: "160px" }} />
                 <input type="email" required value={addEmail} onChange={e => { setAddEmail(e.target.value); setAddStatus("idle"); }} placeholder="Email address" style={{ ...S.input, maxWidth: "260px" }} />
                 <button type="submit" disabled={addStatus === "loading"} style={{ ...S.btn, background: addStatus === "loading" ? "#9c8878" : "#1a1209" }}>
                   {addStatus === "loading" ? "Adding..." : "Add Subscriber"}
