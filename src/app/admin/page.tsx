@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import * as XLSX from "xlsx";
 
 type Tab = "overview" | "logs" | "subscribers" | "generate" | "surveys" | "email" | "requests" | "admins";
 
@@ -142,6 +143,12 @@ export default function AdminDashboard() {
   const [addStatus, setAddStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [addError, setAddError] = useState("");
 
+  // CSV/Excel import
+  const importFileRef = useRef<HTMLInputElement>(null);
+  const [importStatus, setImportStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [importResult, setImportResult] = useState<{ added: number; skipped: number } | null>(null);
+  const [importError, setImportError] = useState("");
+
   // Email composer
   const [emailModal, setEmailModal] = useState<{ ids: string[]; names: string } | null>(null);
   const [emailSubject, setEmailSubject] = useState("Your Restaurant Primer Access Link");
@@ -235,6 +242,67 @@ export default function AdminDashboard() {
       setAddStatus("error");
       setAddError(data.error ?? "Failed to add subscriber.");
     }
+  }
+
+  function downloadTemplate() {
+    const ws = XLSX.utils.aoa_to_sheet([["First Name", "Last Name", "Email"]]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Subscribers");
+    XLSX.writeFile(wb, "subscriber_import_template.csv");
+  }
+
+  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImportStatus("loading");
+    setImportResult(null);
+    setImportError("");
+
+    try {
+      const buffer = await file.arrayBuffer();
+      const wb = XLSX.read(buffer, { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const raw = XLSX.utils.sheet_to_json<Record<string, string>>(ws, { defval: "" });
+
+      const rows = raw.map(r => {
+        const keys = Object.keys(r).map(k => k.trim().toLowerCase());
+        const get = (variants: string[]) => {
+          const key = Object.keys(r).find(k => variants.includes(k.trim().toLowerCase()));
+          return key ? String(r[key]).trim() : "";
+        };
+        return {
+          firstName: get(["first name", "firstname", "first_name"]),
+          lastName: get(["last name", "lastname", "last_name"]),
+          email: get(["email", "email address", "e-mail"]),
+        };
+      }).filter(r => r.email);
+
+      if (rows.length === 0) {
+        setImportStatus("error");
+        setImportError("No valid rows found. Make sure the file has First Name, Last Name, and Email columns.");
+        return;
+      }
+
+      const res = await fetch("/api/admin/subscribers/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rows }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setImportResult({ added: data.added, skipped: data.skipped });
+        setImportStatus("done");
+        fetchData();
+      } else {
+        setImportStatus("error");
+        setImportError(data.error ?? "Import failed.");
+      }
+    } catch {
+      setImportStatus("error");
+      setImportError("Could not read file. Please use a valid CSV or Excel file.");
+    }
+
+    if (importFileRef.current) importFileRef.current.value = "";
   }
 
   async function handleSendEmail(e: React.FormEvent) {
@@ -621,6 +689,42 @@ export default function AdminDashboard() {
               </form>
               {addStatus === "done" && <p style={{ fontSize: "13px", color: "#4caf50", marginTop: "10px" }}>Subscriber added successfully.</p>}
               {addStatus === "error" && <p style={{ fontSize: "13px", color: "#c0392b", marginTop: "10px" }}>{addError}</p>}
+            </div>
+
+            {/* Bulk Import */}
+            <div style={{ background: "#fff", border: "1px solid #e8e0d6", padding: "24px 28px", marginBottom: "28px" }}>
+              <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "9px", letterSpacing: "0.2em", textTransform: "uppercase", color: "#8b6634", marginBottom: "16px" }}>Bulk Import via CSV / Excel</p>
+              <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={downloadTemplate}
+                  style={{ ...S.btn, background: "transparent", color: "#8b6634", border: "2px solid #8b6634" }}
+                >
+                  ↓ Download Template
+                </button>
+                <label style={{ ...S.btn, background: importStatus === "loading" ? "#9c8878" : "#1a1209", cursor: "pointer", display: "inline-block" }}>
+                  {importStatus === "loading" ? "Importing..." : "Upload File"}
+                  <input
+                    ref={importFileRef}
+                    type="file"
+                    accept=".csv,.xlsx,.xls"
+                    onChange={handleImportFile}
+                    style={{ display: "none" }}
+                    disabled={importStatus === "loading"}
+                  />
+                </label>
+                <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "12px", color: "#9c8878" }}>
+                  Accepts .csv or .xlsx — columns: First Name, Last Name, Email
+                </span>
+              </div>
+              {importStatus === "done" && importResult && (
+                <p style={{ fontSize: "13px", color: "#4caf50", marginTop: "10px" }}>
+                  Import complete — {importResult.added} added, {importResult.skipped} skipped (already exist or missing data).
+                </p>
+              )}
+              {importStatus === "error" && (
+                <p style={{ fontSize: "13px", color: "#c0392b", marginTop: "10px" }}>{importError}</p>
+              )}
             </div>
 
             {/* Table */}
