@@ -21,6 +21,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "An admin with that email already exists." }, { status: 409 });
 
   const admin = await db.admins.create(name.trim(), email.trim());
+
+  // Also add as subscriber if not already one
+  const existingSubscriber = await db.subscribers.getByEmail(email.trim());
+  if (!existingSubscriber) {
+    await db.subscribers.create(name.trim(), email.trim());
+  }
+
   return NextResponse.json({ admin });
 }
 
