@@ -142,12 +142,6 @@ export default function HomePage() {
                 Sign out
               </button>
             </div>
-          ) : (
-            <Link href="/admin" style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#6b5c4e", textDecoration: "none", border: "2px solid #d0c4b8", padding: "7px 16px", fontWeight: 600 }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#1a1209"; (e.currentTarget as HTMLElement).style.borderColor = "#1a1209"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#6b5c4e"; (e.currentTarget as HTMLElement).style.borderColor = "#d0c4b8"; }}>
-              Admin
-            </Link>
           )}
         </nav>
       </header>
