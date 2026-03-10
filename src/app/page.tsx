@@ -62,33 +62,6 @@ export default function HomePage() {
     }
   }
 
-  // Survey state
-  const [surveyRating, setSurveyRating] = useState(0);
-  const [surveyHover, setSurveyHover] = useState(0);
-  const [surveyValuable, setSurveyValuable] = useState("");
-  const [surveyRecommend, setSurveyRecommend] = useState<"yes" | "probably" | "not_yet" | "">("");
-  const [surveyTopics, setSurveyTopics] = useState("");
-  const [surveyComments, setSurveyComments] = useState("");
-  const [surveyStatus, setSurveyStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
-
-  async function handleSurveySubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!surveyRating || !surveyValuable || !surveyRecommend) return;
-    setSurveyStatus("loading");
-    const res = await fetch("/api/survey", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        subscriberEmail: session?.email,
-        rating: surveyRating,
-        mostValuable: surveyValuable,
-        wouldRecommend: surveyRecommend,
-        futureTopics: surveyTopics,
-        comments: surveyComments,
-      }),
-    });
-    setSurveyStatus(res.ok ? "done" : "error");
-  }
 
   async function handleNewsletterAccess(e: React.FormEvent) {
     e.preventDefault();
@@ -355,168 +328,7 @@ export default function HomePage() {
       <section id="contact" style={{ background: "#f8f5f1", padding: "100px 20px", borderTop: "1px solid #e0d6ca" }}>
         <div style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center" }}>
 
-          {session ? (
-            /* ── SIGNED IN: Feedback Survey ── */
-            <>
-              <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.28em", textTransform: "uppercase", color: "#8b6634", marginBottom: "20px" }}>
-                Reader Feedback
-              </p>
-              <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 400, marginBottom: "20px", color: "#1a1209" }}>
-                Share Your Feedback
-              </h2>
-              <div style={{ width: "40px", height: "2px", background: "#8b6634", margin: "0 auto 20px" }} />
-              <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "15px", color: "#6b5c4e", lineHeight: 1.7, marginBottom: "48px" }}>
-                Your responses help us shape the next issue. This takes about 60 seconds.
-              </p>
-
-              {surveyStatus === "done" ? (
-                <div style={{ padding: "48px 40px", background: "#fff", border: "1px solid #e0d6ca" }}>
-                  <p style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "26px", color: "#8b6634", marginBottom: "12px" }}>Thank you, {session.name.split(" ")[0]}.</p>
-                  <p style={{ color: "#6b5c4e", fontSize: "15px", lineHeight: 1.7 }}>Your feedback has been received and will help shape the next issue of Restaurant Primer.</p>
-                </div>
-              ) : (
-                <form onSubmit={handleSurveySubmit} style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: "36px" }}>
-
-                  {/* Q1: Star rating */}
-                  <div>
-                    <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#8b6634", marginBottom: "14px" }}>
-                      1 — How would you rate this issue overall?
-                    </p>
-                    <div style={{ display: "flex", gap: "6px" }}>
-                      {[1, 2, 3, 4, 5].map(star => (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={() => setSurveyRating(star)}
-                          onMouseEnter={() => setSurveyHover(star)}
-                          onMouseLeave={() => setSurveyHover(0)}
-                          style={{
-                            background: "none", border: "none", cursor: "pointer",
-                            fontSize: "40px", lineHeight: 1, padding: "0 4px",
-                            color: (surveyHover || surveyRating) >= star ? "#8b6634" : "#d0c4b8",
-                            transition: "color .1s",
-                          }}
-                        >★</button>
-                      ))}
-                      {surveyRating > 0 && (
-                        <span style={{ alignSelf: "center", marginLeft: "8px", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", color: "#6b5c4e", fontWeight: 600 }}>
-                          {["", "Poor", "Fair", "Good", "Great", "Excellent"][surveyRating]}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Q2: Most valuable section */}
-                  <div>
-                    <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#8b6634", marginBottom: "14px" }}>
-                      2 — Which section was most valuable to you?
-                    </p>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                      {["The Restaurant Industry", "Understanding The Income Statement", "Corporate Income Statement Line Items", "Understanding EBITDA", "Balance Sheet", "Financial Return Analysis Techniques", "Key Accounting Changes", "Development", "Franchising"].map(opt => (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => setSurveyValuable(opt)}
-                          style={{
-                            padding: "12px 20px",
-                            border: "2px solid",
-                            borderColor: surveyValuable === opt ? "#1a1209" : "#d0c4b8",
-                            background: surveyValuable === opt ? "#1a1209" : "#fff",
-                            color: surveyValuable === opt ? "#fff" : "#6b5c4e",
-                            fontFamily: "'Source Sans Pro', Arial, sans-serif",
-                            fontSize: "14px",
-                            cursor: "pointer",
-                            fontWeight: surveyValuable === opt ? 700 : 400,
-                            transition: "all .15s",
-                          }}
-                        >{opt}</button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Q3: Would recommend */}
-                  <div>
-                    <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#8b6634", marginBottom: "14px" }}>
-                      3 — Would you recommend Restaurant Primer to a colleague?
-                    </p>
-                    <div style={{ display: "flex", gap: "10px" }}>
-                      {([["yes", "Yes, definitely"], ["probably", "Probably"], ["not_yet", "Not yet"]] as const).map(([val, label]) => (
-                        <button
-                          key={val}
-                          type="button"
-                          onClick={() => setSurveyRecommend(val)}
-                          style={{
-                            flex: 1, padding: "14px",
-                            border: "2px solid",
-                            borderColor: surveyRecommend === val ? "#1a1209" : "#d0c4b8",
-                            background: surveyRecommend === val ? "#1a1209" : "#fff",
-                            color: surveyRecommend === val ? "#fff" : "#6b5c4e",
-                            fontFamily: "'Montserrat', Arial, sans-serif",
-                            fontSize: "11px", letterSpacing: "0.1em",
-                            cursor: "pointer",
-                            fontWeight: surveyRecommend === val ? 700 : 400,
-                            transition: "all .15s",
-                          }}
-                        >{label}</button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Q4: Future topics */}
-                  <div>
-                    <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#8b6634", marginBottom: "14px" }}>
-                      4 — What topics would you like in future issues?
-                    </p>
-                    <textarea
-                      rows={3}
-                      value={surveyTopics}
-                      onChange={e => setSurveyTopics(e.target.value)}
-                      placeholder="e.g. staffing strategies, menu engineering, technology..."
-                      style={{ width: "100%", background: "#fff", border: "2px solid #d0c4b8", color: "#1a1209", padding: "14px 18px", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", outline: "none", resize: "vertical" }}
-                    />
-                  </div>
-
-                  {/* Q5: Additional comments */}
-                  <div>
-                    <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#8b6634", marginBottom: "14px" }}>
-                      5 — Any other comments? <span style={{ color: "#9c8878", textTransform: "none", letterSpacing: 0 }}>(optional)</span>
-                    </p>
-                    <textarea
-                      rows={3}
-                      value={surveyComments}
-                      onChange={e => setSurveyComments(e.target.value)}
-                      placeholder="Anything else you'd like to share..."
-                      style={{ width: "100%", background: "#fff", border: "2px solid #d0c4b8", color: "#1a1209", padding: "14px 18px", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", outline: "none", resize: "vertical" }}
-                    />
-                  </div>
-
-                  {surveyStatus === "error" && (
-                    <p style={{ color: "#c0392b", fontSize: "13px" }}>Something went wrong. Please try again.</p>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={!surveyRating || !surveyValuable || !surveyRecommend || surveyStatus === "loading"}
-                    style={{
-                      background: (!surveyRating || !surveyValuable || !surveyRecommend || surveyStatus === "loading") ? "#d0c4b8" : "#1a1209",
-                      border: "none",
-                      color: (!surveyRating || !surveyValuable || !surveyRecommend || surveyStatus === "loading") ? "#9c8878" : "#fff",
-                      padding: "18px",
-                      fontFamily: "'Montserrat', Arial, sans-serif",
-                      fontSize: "12px", letterSpacing: "0.16em", textTransform: "uppercase",
-                      fontWeight: 700,
-                      cursor: (!surveyRating || !surveyValuable || !surveyRecommend) ? "not-allowed" : "pointer",
-                      transition: "background .2s, color .2s",
-                    }}
-                  >
-                    {surveyStatus === "loading" ? "Submitting..." : "Submit Feedback"}
-                  </button>
-                </form>
-              )}
-            </>
-          ) : (
-            /* ── NOT SIGNED IN: Original contact form ── */
-            <>
+          <>
               <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.28em", textTransform: "uppercase", color: "#8b6634", marginBottom: "20px" }}>
                 Get In Touch
               </p>
@@ -551,7 +363,6 @@ export default function HomePage() {
                 </form>
               )}
             </>
-          )}
         </div>
       </section>
 
