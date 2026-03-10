@@ -5,8 +5,8 @@ export async function GET(req: NextRequest) {
   if (req.cookies.get("admin_auth")?.value !== "1")
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const subscribers = db.subscribers.getAll();
-  const logs = db.logs.getAll();
+  const subscribers = await db.subscribers.getAll();
+  const logs = await db.logs.getAll();
 
   const enriched = subscribers.map((s) => {
     const subLogs = logs.filter((l) => l.subscriberId === s.id);
@@ -29,11 +29,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Name and email required." }, { status: 400 });
   }
 
-  const existing = db.subscribers.getByEmail(email);
+  const existing = await db.subscribers.getByEmail(email);
   if (existing) {
     return NextResponse.json({ error: "A subscriber with that email already exists." }, { status: 409 });
   }
 
-  const sub = db.subscribers.create(name, email);
+  const sub = await db.subscribers.create(name, email);
   return NextResponse.json({ subscriber: sub });
 }

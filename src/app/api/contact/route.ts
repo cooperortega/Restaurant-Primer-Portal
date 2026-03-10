@@ -14,10 +14,9 @@ export async function POST(req: NextRequest) {
   if (!name?.trim() || !email?.trim())
     return NextResponse.json({ error: "Name and email are required." }, { status: 400 });
 
-  const accessReq = db.accessRequests.create(name.trim(), email.trim(), message?.trim() ?? "");
+  const accessReq = await db.accessRequests.create(name.trim(), email.trim(), message?.trim() ?? "");
 
-  // Notify all admins
-  const fromAddress = process.env.RESEND_FROM_EMAIL ?? "Restaurant Primer <noreply@restaurantprimer.com>";
+  const fromAddress = process.env.RESEND_FROM_EMAIL ?? "Restaurant Primer <admin@restaurantprimer.com>";
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
   const html = `<!DOCTYPE html>
@@ -61,16 +60,20 @@ export async function POST(req: NextRequest) {
 </body>
 </html>`;
 
+  let emailError: string | null = null;
   try {
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: fromAddress,
       to: ADMIN_EMAILS,
       subject: `Access Request: ${name} (${email})`,
       html,
     });
-  } catch {
-    // Email notification failed — request is still saved
+    if ((result as { error?: { message?: string } }).error) {
+      emailError = (result as { error?: { message?: string } }).error?.message ?? "Unknown Resend error";
+    }
+  } catch (err) {
+    emailError = err instanceof Error ? err.message : String(err);
   }
 
-  return NextResponse.json({ ok: true, id: accessReq.id });
+  return NextResponse.json({ ok: true, id: accessReq.id, emailError });
 }

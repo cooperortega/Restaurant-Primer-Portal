@@ -19,7 +19,13 @@
       "Bash(git config user.name \"cooperortega\")",
       "Bash(git add src/lib/storage.ts)",
       "Bash(git commit -m \"Fix sign-in on Vercel by handling read-only filesystem\")",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(npm install @vercel/kv --save)",
+      "Bash(npm uninstall @vercel/kv)",
+      "Bash(npm install @upstash/redis --save)",
+      "Bash(node -e \":*)",
+      "Bash(node -e \"require\\(''fs''\\).writeFileSync\\(''write-storage.js'', ''require\\(\"\"fs\"\"\\).writeFileSync\\(\"\"src/lib/storage.ts\"\", require\\(\"\"fs\"\"\\).readFileSync\\(\"\"storage-new.txt\"\", \"\"utf8\"\"\\), \"\"utf8\"\"\\); console.log\\(\"\"done\"\"\\);''\\)\")",
+      "Bash(npm run build)"
     ]
   }
 }

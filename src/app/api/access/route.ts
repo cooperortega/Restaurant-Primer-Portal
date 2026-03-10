@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Email is required." }, { status: 400 });
   }
 
-  const subscriber = db.subscribers.getByEmail(email);
+  const subscriber = await db.subscribers.getByEmail(email);
   if (!subscriber) {
     return NextResponse.json(
       { error: "We couldn't find that email in our subscriber list. Please contact us to be added." },
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const newsletter = db.newsletters.getLatest();
+  const newsletter = await db.newsletters.getLatest();
   if (!newsletter) {
     return NextResponse.json({ error: "No newsletter available." }, { status: 404 });
   }
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     "unknown";
   const ua = req.headers.get("user-agent") ?? "unknown";
 
-  db.logs.create({
+  await db.logs.create({
     subscriberId: subscriber.id,
     subscriberName: subscriber.name,
     subscriberEmail: subscriber.email,

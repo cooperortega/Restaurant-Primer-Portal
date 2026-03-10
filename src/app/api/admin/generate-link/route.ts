@@ -8,19 +8,19 @@ export async function POST(req: NextRequest) {
   const { subscriberId, name, email, newsletterId } = await req.json();
 
   const newsletter = newsletterId
-    ? db.newsletters.getById(newsletterId)
-    : db.newsletters.getLatest();
+    ? await db.newsletters.getById(newsletterId)
+    : await db.newsletters.getLatest();
 
   if (!newsletter) {
     return NextResponse.json({ error: "Newsletter not found." }, { status: 404 });
   }
 
-  let subscriber = subscriberId ? db.subscribers.getById(subscriberId) : null;
+  let subscriber = subscriberId ? await db.subscribers.getById(subscriberId) : null;
 
   if (!subscriber && email) {
-    subscriber = db.subscribers.getByEmail(email);
+    subscriber = await db.subscribers.getByEmail(email);
     if (!subscriber) {
-      subscriber = db.subscribers.create(name || email, email);
+      subscriber = await db.subscribers.create(name || email, email);
     }
   }
 
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Subscriber not found." }, { status: 404 });
   }
 
-  const token = db.tokens.create(subscriber.id, newsletter.id);
+  const token = await db.tokens.create(subscriber.id, newsletter.id);
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   const link = `${baseUrl}/view?token=${token.token}`;
 

@@ -84,23 +84,23 @@ export async function POST(req: NextRequest) {
   if (!body?.trim())
     return NextResponse.json({ error: "Email body is required." }, { status: 400 });
 
-  const newsletter = db.newsletters.getLatest();
+  const newsletter = await db.newsletters.getLatest();
   if (!newsletter)
     return NextResponse.json({ error: "No newsletter found." }, { status: 404 });
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const fromAddress = process.env.RESEND_FROM_EMAIL ?? "Restaurant Primer <noreply@restaurantprimer.com>";
+  const fromAddress = process.env.RESEND_FROM_EMAIL ?? "Restaurant Primer <admin@restaurantprimer.com>";
 
   const results: { email: string; success: boolean; error?: string }[] = [];
 
   for (const id of subscriberIds) {
-    const subscriber = db.subscribers.getById(id);
+    const subscriber = await db.subscribers.getById(id);
     if (!subscriber) {
       results.push({ email: id, success: false, error: "Subscriber not found" });
       continue;
     }
 
-    const token = db.tokens.create(subscriber.id, newsletter.id);
+    const token = await db.tokens.create(subscriber.id, newsletter.id);
     const link = `${baseUrl}/view?token=${token.token}`;
     const html = buildEmailHtml(subscriber.name, link, subject, body);
 

@@ -8,13 +8,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Token required." }, { status: 400 });
   }
 
-  const tokenRecord = db.tokens.getByToken(token);
+  const tokenRecord = await db.tokens.getByToken(token);
   if (!tokenRecord) {
     return NextResponse.json({ error: "Invalid or expired link." }, { status: 404 });
   }
 
-  const subscriber = db.subscribers.getById(tokenRecord.subscriberId);
-  const newsletter = db.newsletters.getById(tokenRecord.newsletterId);
+  const subscriber = await db.subscribers.getById(tokenRecord.subscriberId);
+  const newsletter = await db.newsletters.getById(tokenRecord.newsletterId);
 
   if (!subscriber || !newsletter) {
     return NextResponse.json({ error: "Record not found." }, { status: 404 });
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     "unknown";
   const ua = req.headers.get("user-agent") ?? "unknown";
 
-  db.logs.create({
+  await db.logs.create({
     subscriberId: subscriber.id,
     subscriberName: subscriber.name,
     subscriberEmail: subscriber.email,

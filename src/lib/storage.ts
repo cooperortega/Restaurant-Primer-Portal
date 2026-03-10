@@ -1,31 +1,63 @@
 import fs from "fs";
 import path from "path";
+import { Redis } from "@upstash/redis";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 
 function ensureDataDir() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-function readJson<T>(filename: string, fallback: T): T {
-  ensureDataDir();
-  const fp = path.join(DATA_DIR, filename);
-  if (!fs.existsSync(fp)) {
-    writeJson(filename, fallback);
+function readJsonSync<T>(filename: string, fallback: T): T {
+  try {
+    ensureDataDir();
+    const fp = path.join(DATA_DIR, filename);
+    if (!fs.existsSync(fp)) return fallback;
+    return JSON.parse(fs.readFileSync(fp, "utf-8")) as T;
+  } catch {
     return fallback;
   }
-  return JSON.parse(fs.readFileSync(fp, "utf-8")) as T;
 }
 
-function writeJson<T>(filename: string, data: T): void {
+function writeJsonSync<T>(filename: string, data: T): void {
   try {
     ensureDataDir();
     fs.writeFileSync(path.join(DATA_DIR, filename), JSON.stringify(data, null, 2), "utf-8");
-  } catch {
-    // Vercel and other read-only hosts: writes fail silently.
-    // Reads still work from the bundled data files.
+  } catch {}
+}
+
+const useRedis = !!(
+  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+);
+
+let _redis: Redis | null = null;
+function getRedis(): Redis {
+  if (!_redis) {
+    _redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL!,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    });
+  }
+  return _redis;
+}
+
+async function readData<T>(key: string, fallback: T): Promise<T> {
+  if (useRedis) {
+    try {
+      const data = await getRedis().get<T>(key);
+      if (data !== null && data !== undefined) return data;
+    } catch {}
+  }
+  return readJsonSync(key + ".json", fallback);
+}
+
+async function writeData<T>(key: string, data: T): Promise<void> {
+  if (useRedis) {
+    try {
+      await getRedis().set(key, data);
+    } catch {}
+  } else {
+    writeJsonSync(key + ".json", data);
   }
 }
 
@@ -91,17 +123,17 @@ export interface AccessRequest {
 
 export const db = {
   subscribers: {
-    getAll: (): Subscriber[] => readJson("subscribers.json", []),
-    getByEmail: (email: string): Subscriber | null => {
-      const all = readJson<Subscriber[]>("subscribers.json", []);
+    getAll: (): Promise<Subscriber[]> => readData("subscribers", []),
+    getByEmail: async (email: string): Promise<Subscriber | null> => {
+      const all = await readData<Subscriber[]>("subscribers", []);
       return all.find((s) => s.email.toLowerCase() === email.toLowerCase()) ?? null;
     },
-    getById: (id: string): Subscriber | null => {
-      const all = readJson<Subscriber[]>("subscribers.json", []);
+    getById: async (id: string): Promise<Subscriber | null> => {
+      const all = await readData<Subscriber[]>("subscribers", []);
       return all.find((s) => s.id === id) ?? null;
     },
-    create: (name: string, email: string): Subscriber => {
-      const all = readJson<Subscriber[]>("subscribers.json", []);
+    create: async (name: string, email: string): Promise<Subscriber> => {
+      const all = await readData<Subscriber[]>("subscribers", []);
       const sub: Subscriber = {
         id: "sub-" + Date.now(),
         name,
@@ -109,30 +141,32 @@ export const db = {
         createdAt: new Date().toISOString(),
       };
       all.push(sub);
-      writeJson("subscribers.json", all);
+      await writeData("subscribers", all);
       return sub;
     },
   },
+
   newsletters: {
-    getAll: (): Newsletter[] => readJson("newsletters.json", []),
-    getLatest: (): Newsletter | null => {
-      const all = readJson<Newsletter[]>("newsletters.json", []);
+    getAll: (): Promise<Newsletter[]> => readData("newsletters", []),
+    getLatest: async (): Promise<Newsletter | null> => {
+      const all = await readData<Newsletter[]>("newsletters", []);
       if (!all.length) return null;
       return all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
     },
-    getById: (id: string): Newsletter | null => {
-      const all = readJson<Newsletter[]>("newsletters.json", []);
+    getById: async (id: string): Promise<Newsletter | null> => {
+      const all = await readData<Newsletter[]>("newsletters", []);
       return all.find((n) => n.id === id) ?? null;
     },
   },
+
   tokens: {
-    getAll: (): AccessToken[] => readJson("tokens.json", []),
-    getByToken: (token: string): AccessToken | null => {
-      const all = readJson<AccessToken[]>("tokens.json", []);
+    getAll: (): Promise<AccessToken[]> => readData("tokens", []),
+    getByToken: async (token: string): Promise<AccessToken | null> => {
+      const all = await readData<AccessToken[]>("tokens", []);
       return all.find((t) => t.token === token) ?? null;
     },
-    create: (subscriberId: string, newsletterId: string): AccessToken => {
-      const all = readJson<AccessToken[]>("tokens.json", []);
+    create: async (subscriberId: string, newsletterId: string): Promise<AccessToken> => {
+      const all = await readData<AccessToken[]>("tokens", []);
       const t: AccessToken = {
         id: "tok-" + Date.now(),
         token: crypto.randomUUID(),
@@ -141,55 +175,58 @@ export const db = {
         createdAt: new Date().toISOString(),
       };
       all.push(t);
-      writeJson("tokens.json", all);
+      await writeData("tokens", all);
       return t;
     },
   },
+
   logs: {
-    getAll: (): AccessLog[] =>
-      readJson<AccessLog[]>("access_logs.json", []).sort(
-        (a, b) => new Date(b.accessedAt).getTime() - new Date(a.accessedAt).getTime()
-      ),
-    create: (entry: Omit<AccessLog, "id" | "accessedAt">): AccessLog => {
-      const all = readJson<AccessLog[]>("access_logs.json", []);
+    getAll: async (): Promise<AccessLog[]> => {
+      const all = await readData<AccessLog[]>("access_logs", []);
+      return all.sort((a, b) => new Date(b.accessedAt).getTime() - new Date(a.accessedAt).getTime());
+    },
+    create: async (entry: Omit<AccessLog, "id" | "accessedAt">): Promise<AccessLog> => {
+      const all = await readData<AccessLog[]>("access_logs", []);
       const log: AccessLog = {
         ...entry,
         id: "log-" + Date.now(),
         accessedAt: new Date().toISOString(),
       };
       all.push(log);
-      writeJson("access_logs.json", all);
+      await writeData("access_logs", all);
       return log;
     },
   },
+
   surveys: {
-    getAll: (): SurveyResponse[] =>
-      readJson<SurveyResponse[]>("surveys.json", []).sort(
-        (a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
-      ),
-    getBySubscriber: (subscriberId: string): SurveyResponse | null => {
-      const all = readJson<SurveyResponse[]>("surveys.json", []);
+    getAll: async (): Promise<SurveyResponse[]> => {
+      const all = await readData<SurveyResponse[]>("surveys", []);
+      return all.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+    },
+    getBySubscriber: async (subscriberId: string): Promise<SurveyResponse | null> => {
+      const all = await readData<SurveyResponse[]>("surveys", []);
       return all.find((s) => s.subscriberId === subscriberId) ?? null;
     },
-    create: (entry: Omit<SurveyResponse, "id" | "submittedAt">): SurveyResponse => {
-      const all = readJson<SurveyResponse[]>("surveys.json", []);
+    create: async (entry: Omit<SurveyResponse, "id" | "submittedAt">): Promise<SurveyResponse> => {
+      const all = await readData<SurveyResponse[]>("surveys", []);
       const survey: SurveyResponse = {
         ...entry,
         id: "srv-" + Date.now(),
         submittedAt: new Date().toISOString(),
       };
       all.push(survey);
-      writeJson("surveys.json", all);
+      await writeData("surveys", all);
       return survey;
     },
   },
+
   accessRequests: {
-    getAll: (): AccessRequest[] =>
-      readJson<AccessRequest[]>("access_requests.json", []).sort(
-        (a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
-      ),
-    create: (name: string, email: string, message: string): AccessRequest => {
-      const all = readJson<AccessRequest[]>("access_requests.json", []);
+    getAll: async (): Promise<AccessRequest[]> => {
+      const all = await readData<AccessRequest[]>("access_requests", []);
+      return all.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+    },
+    create: async (name: string, email: string, message: string): Promise<AccessRequest> => {
+      const all = await readData<AccessRequest[]>("access_requests", []);
       const req: AccessRequest = {
         id: "req-" + Date.now(),
         name,
@@ -199,15 +236,15 @@ export const db = {
         submittedAt: new Date().toISOString(),
       };
       all.push(req);
-      writeJson("access_requests.json", all);
+      await writeData("access_requests", all);
       return req;
     },
-    updateStatus: (id: string, status: "added" | "granted" | "dismissed"): void => {
-      const all = readJson<AccessRequest[]>("access_requests.json", []);
-      const idx = all.findIndex(r => r.id === id);
+    updateStatus: async (id: string, status: "added" | "granted" | "dismissed"): Promise<void> => {
+      const all = await readData<AccessRequest[]>("access_requests", []);
+      const idx = all.findIndex((r) => r.id === id);
       if (idx !== -1) {
         all[idx].status = status;
-        writeJson("access_requests.json", all);
+        await writeData("access_requests", all);
       }
     },
   },

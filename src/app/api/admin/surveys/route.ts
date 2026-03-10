@@ -5,6 +5,6 @@ export async function GET(req: NextRequest) {
   if (req.cookies.get("admin_auth")?.value !== "1")
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const surveys = db.surveys.getAll();
+  const surveys = await db.surveys.getAll();
   return NextResponse.json({ surveys });
 }

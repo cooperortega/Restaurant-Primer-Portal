@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   if (req.cookies.get("admin_auth")?.value !== "1")
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  return NextResponse.json({ requests: db.accessRequests.getAll() });
+  return NextResponse.json({ requests: await db.accessRequests.getAll() });
 }
 
 function buildInviteHtml(firstName: string, link: string) {
@@ -64,35 +64,38 @@ export async function PATCH(req: NextRequest) {
   const { id, action, ids } = await req.json();
   // action: "add" | "invite" | "dismiss" | "add_all" | "invite_all"
 
-  const fromAddress = process.env.RESEND_FROM_EMAIL ?? "Restaurant Primer <noreply@restaurantprimer.com>";
+  const fromAddress = process.env.RESEND_FROM_EMAIL ?? "Restaurant Primer <admin@restaurantprimer.com>";
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
   // ── Bulk actions ──
   if (action === "add_all") {
-    const targets = (ids as string[]) ?? db.accessRequests.getAll().filter(r => r.status === "pending").map(r => r.id);
+    const allRequests = await db.accessRequests.getAll();
+    const targets = (ids as string[]) ?? allRequests.filter(r => r.status === "pending").map(r => r.id);
     for (const rid of targets) {
-      const r = db.accessRequests.getAll().find(x => x.id === rid);
+      const r = allRequests.find(x => x.id === rid);
       if (!r || r.status !== "pending") continue;
-      if (!db.subscribers.getByEmail(r.email)) db.subscribers.create(r.name, r.email);
-      db.accessRequests.updateStatus(rid, "added");
+      if (!await db.subscribers.getByEmail(r.email)) await db.subscribers.create(r.name, r.email);
+      await db.accessRequests.updateStatus(rid, "added");
     }
     return NextResponse.json({ ok: true });
   }
 
   if (action === "invite_all") {
-    const targets = (ids as string[]) ?? db.accessRequests.getAll().filter(r => r.status === "added").map(r => r.id);
-    const newsletter = db.newsletters.getLatest();
+    const allRequests = await db.accessRequests.getAll();
+    const targets = (ids as string[]) ?? allRequests.filter(r => r.status === "added").map(r => r.id);
+    const newsletter = await db.newsletters.getLatest();
     if (!newsletter) return NextResponse.json({ error: "No newsletter found." }, { status: 404 });
     for (const rid of targets) {
-      const r = db.accessRequests.getAll().find(x => x.id === rid);
+      const r = allRequests.find(x => x.id === rid);
       if (!r || r.status !== "added") continue;
-      const subscriber = db.subscribers.getByEmail(r.email) ?? db.subscribers.create(r.name, r.email);
-      const token = db.tokens.create(subscriber.id, newsletter.id);
+      const existingSub = await db.subscribers.getByEmail(r.email);
+      const subscriber = existingSub ?? await db.subscribers.create(r.name, r.email);
+      const token = await db.tokens.create(subscriber.id, newsletter.id);
       const link = `${baseUrl}/view?token=${token.token}`;
       try {
         await resend.emails.send({ from: fromAddress, to: r.email, subject: "You've been granted access to Restaurant Primer", html: buildInviteHtml(r.name.split(" ")[0], link) });
       } catch { /* continue on failure */ }
-      db.accessRequests.updateStatus(rid, "granted");
+      await db.accessRequests.updateStatus(rid, "granted");
     }
     return NextResponse.json({ ok: true });
   }
@@ -101,29 +104,31 @@ export async function PATCH(req: NextRequest) {
   if (!id || !["add", "invite", "dismiss"].includes(action))
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
 
-  const accessReq = db.accessRequests.getAll().find(r => r.id === id);
+  const allRequests = await db.accessRequests.getAll();
+  const accessReq = allRequests.find(r => r.id === id);
   if (!accessReq) return NextResponse.json({ error: "Request not found." }, { status: 404 });
 
   if (action === "dismiss") {
-    db.accessRequests.updateStatus(id, "dismissed");
+    await db.accessRequests.updateStatus(id, "dismissed");
     return NextResponse.json({ ok: true });
   }
 
   if (action === "add") {
-    if (!db.subscribers.getByEmail(accessReq.email)) db.subscribers.create(accessReq.name, accessReq.email);
-    db.accessRequests.updateStatus(id, "added");
+    if (!await db.subscribers.getByEmail(accessReq.email)) await db.subscribers.create(accessReq.name, accessReq.email);
+    await db.accessRequests.updateStatus(id, "added");
     return NextResponse.json({ ok: true });
   }
 
   // action === "invite"
-  const subscriber = db.subscribers.getByEmail(accessReq.email) ?? db.subscribers.create(accessReq.name, accessReq.email);
-  const newsletter = db.newsletters.getLatest();
+  const existingSub = await db.subscribers.getByEmail(accessReq.email);
+  const subscriber = existingSub ?? await db.subscribers.create(accessReq.name, accessReq.email);
+  const newsletter = await db.newsletters.getLatest();
   if (!newsletter) return NextResponse.json({ error: "No newsletter found." }, { status: 404 });
-  const token = db.tokens.create(subscriber.id, newsletter.id);
+  const token = await db.tokens.create(subscriber.id, newsletter.id);
   const link = `${baseUrl}/view?token=${token.token}`;
   try {
     await resend.emails.send({ from: fromAddress, to: accessReq.email, subject: "You've been granted access to Restaurant Primer", html: buildInviteHtml(accessReq.name.split(" ")[0], link) });
   } catch { /* email failed but we still mark granted */ }
-  db.accessRequests.updateStatus(id, "granted");
+  await db.accessRequests.updateStatus(id, "granted");
   return NextResponse.json({ ok: true });
 }
