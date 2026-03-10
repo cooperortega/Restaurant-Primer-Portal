@@ -8,12 +8,14 @@ import { getSession, setSession, clearSession, type SubscriberSession } from "@/
 export default function HomePage() {
   const router = useRouter();
   const [session, setSessionState] = useState<SubscriberSession | null>(null);
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [nlStatus, setNlStatus] = useState<"idle" | "loading" | "error">("idle");
   const [nlError, setNlError] = useState("");
 
   useEffect(() => {
     setSessionState(getSession());
+    setIsAdminUser(document.cookie.split(";").some(c => c.trim() === "is_admin=1"));
   }, []);
 
   function handleSignOut() {
@@ -126,6 +128,13 @@ export default function HomePage() {
           </a>
           {session ? (
             <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+              {isAdminUser && (
+                <Link href="/admin" style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#8b6634", border: "2px solid #8b6634", padding: "7px 16px", textDecoration: "none", fontWeight: 600 }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#8b6634"; (e.currentTarget as HTMLElement).style.color = "#fff"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#8b6634"; }}>
+                  Admin Portal
+                </Link>
+              )}
               <Link href="/view" style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#fff", background: "#1a1209", padding: "9px 20px", textDecoration: "none", fontWeight: 700 }}>
                 Open Restaurant Primer
               </Link>

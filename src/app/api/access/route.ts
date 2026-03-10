@@ -56,6 +56,13 @@ export async function POST(req: NextRequest) {
       maxAge: 60 * 60 * 8,
       path: "/",
     });
+    res.cookies.set("is_admin", "1", {
+      httpOnly: false,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 8,
+      path: "/",
+    });
   }
 
   return res;

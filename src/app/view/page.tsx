@@ -20,6 +20,11 @@ function NewsletterViewer() {
 
   const [data, setData] = useState<ViewerData | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [isAdminUser, setIsAdminUser] = useState(false);
+
+  useEffect(() => {
+    setIsAdminUser(document.cookie.split(";").some(c => c.trim() === "is_admin=1"));
+  }, []);
   const [errorMsg, setErrorMsg] = useState("");
   const [pdfError, setPdfError] = useState(false);
 
@@ -102,7 +107,7 @@ function NewsletterViewer() {
               Welcome, <span style={{ color: "#1a1209", fontWeight: 600 }}>{data.name}</span>
             </span>
           )}
-          {data?.isAdmin && (
+          {isAdminUser && (
             <Link
               href="/admin"
               style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#8b6634", border: "2px solid #8b6634", padding: "10px 20px", textDecoration: "none", fontWeight: 600 }}
