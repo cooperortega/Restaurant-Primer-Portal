@@ -416,7 +416,7 @@ export default function HomePage() {
                 <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#8b6634", marginBottom: "14px" }}>
                   2 — How useful did you find the Primer overall?
                 </p>
-                <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                <div style={{ display: "flex", gap: "6px", alignItems: "center", justifyContent: "center" }}>
                   {[1, 2, 3, 4, 5].map(star => (
                     <button key={star} type="button"
                       onClick={() => setProfUseful(star)}
@@ -438,7 +438,7 @@ export default function HomePage() {
                 <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#8b6634", marginBottom: "14px" }}>
                   3 — Which sections were most valuable to you? <span style={{ color: "#9c8878", textTransform: "none", letterSpacing: 0, fontSize: "11px" }}>(select all that apply)</span>
                 </p>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "center" }}>
                   {["Industry Overview & Segments", "Income Statement & Key Metrics", "Same-Store Sales Analysis", "EBITDA & Financial Returns", "Development & Unit Economics", "Franchising", "Key Accounting Changes"].map(opt => (
                     <button key={opt} type="button" onClick={() => toggleProfSection(opt)}
                       style={{ padding: "12px 20px", border: "2px solid", borderColor: profSections.includes(opt) ? "#1a1209" : "#d0c4b8", background: profSections.includes(opt) ? "#1a1209" : "#fff", color: profSections.includes(opt) ? "#fff" : "#6b5c4e", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", cursor: "pointer", fontWeight: profSections.includes(opt) ? 700 : 400, transition: "all .15s" }}
@@ -452,7 +452,7 @@ export default function HomePage() {
                 <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#8b6634", marginBottom: "14px" }}>
                   4 — How would you rate the clarity of the financial concepts explained?
                 </p>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "center" }}>
                   {["Very Clear", "Mostly Clear", "Somewhat Unclear", "Unclear"].map(opt => (
                     <button key={opt} type="button" onClick={() => setProfClarity(opt)}
                       style={{ padding: "12px 24px", border: "2px solid", borderColor: profClarity === opt ? "#1a1209" : "#d0c4b8", background: profClarity === opt ? "#1a1209" : "#fff", color: profClarity === opt ? "#fff" : "#6b5c4e", fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "11px", letterSpacing: "0.08em", cursor: "pointer", fontWeight: profClarity === opt ? 700 : 400, transition: "all .15s" }}
@@ -477,10 +477,10 @@ export default function HomePage() {
                 <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#8b6634", marginBottom: "14px" }}>
                   6 — Would you recommend the Restaurant Primer to a colleague?
                 </p>
-                <div style={{ display: "flex", gap: "10px" }}>
+                <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
                   {["Yes", "No", "Maybe"].map(opt => (
                     <button key={opt} type="button" onClick={() => setProfRecommend(opt)}
-                      style={{ flex: 1, padding: "14px", border: "2px solid", borderColor: profRecommend === opt ? "#1a1209" : "#d0c4b8", background: profRecommend === opt ? "#1a1209" : "#fff", color: profRecommend === opt ? "#fff" : "#6b5c4e", fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "11px", letterSpacing: "0.1em", cursor: "pointer", fontWeight: profRecommend === opt ? 700 : 400, transition: "all .15s" }}
+                      style={{ padding: "14px 40px", border: "2px solid", borderColor: profRecommend === opt ? "#1a1209" : "#d0c4b8", background: profRecommend === opt ? "#1a1209" : "#fff", color: profRecommend === opt ? "#fff" : "#6b5c4e", fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "11px", letterSpacing: "0.1em", cursor: "pointer", fontWeight: profRecommend === opt ? 700 : 400, transition: "all .15s" }}
                     >{opt}</button>
                   ))}
                 </div>
