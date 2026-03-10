@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
-type Tab = "overview" | "logs" | "subscribers" | "generate" | "surveys" | "email" | "requests";
+type Tab = "overview" | "logs" | "subscribers" | "generate" | "surveys" | "email" | "requests" | "admins";
 
 interface Log {
   id: string;
@@ -149,16 +149,25 @@ export default function AdminDashboard() {
   const [emailStatus, setEmailStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [emailResult, setEmailResult] = useState<{ sent: number; failed: number } | null>(null);
 
+  // Admin users
+  const [adminUsers, setAdminUsers] = useState<{ id: string; name: string; email: string; createdAt: string }[]>([]);
+  const [adminFirstName, setAdminFirstName] = useState("");
+  const [adminLastName, setAdminLastName] = useState("");
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminAddStatus, setAdminAddStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [adminAddError, setAdminAddError] = useState("");
+
   // Search/filter
   const [logSearch, setLogSearch] = useState("");
   const [subSearch, setSubSearch] = useState("");
 
   const fetchData = useCallback(async () => {
-    const [logsRes, subsRes, survRes, reqRes] = await Promise.all([
+    const [logsRes, subsRes, survRes, reqRes, adminsRes] = await Promise.all([
       fetch("/api/admin/logs"),
       fetch("/api/admin/subscribers"),
       fetch("/api/admin/surveys"),
       fetch("/api/admin/access-requests"),
+      fetch("/api/admin/admins"),
     ]);
     if (logsRes.status === 401 || subsRes.status === 401) {
       router.replace("/admin/login");
@@ -168,10 +177,12 @@ export default function AdminDashboard() {
     const subsData = await subsRes.json();
     const survData = await survRes.json();
     const reqData = await reqRes.json();
+    const adminsData = await adminsRes.json();
     setLogs(logsData.logs ?? []);
     setSubscribers(subsData.subscribers ?? []);
     setSurveys(survData.surveys ?? []);
     setAccessRequests(reqData.requests ?? []);
+    setAdminUsers(adminsData.admins ?? []);
     setLoading(false);
     setAuthChecked(true);
   }, [router]);
@@ -354,6 +365,7 @@ export default function AdminDashboard() {
     { id: "surveys", label: "Feedback", icon: "◈" },
     { id: "generate", label: "Generate Link", icon: "⊕" },
     { id: "email", label: "Send Email", icon: "✉" },
+    { id: "admins", label: "Admin Users", icon: "⚙" },
   ];
 
   return (
@@ -1131,6 +1143,93 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* ────────────── ADMIN USERS ────────────── */}
+        {tab === "admins" && (
+          <div>
+            <div style={{ marginBottom: "32px" }}>
+              <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "9px", letterSpacing: "0.22em", textTransform: "uppercase", color: "#8b6634", marginBottom: "8px" }}>Portal Settings</p>
+              <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "30px", fontWeight: 400, color: "#1a1209" }}>Admin Users</h2>
+            </div>
+
+            {/* Add admin form */}
+            <div style={{ background: "#fff", border: "1px solid #e8e0d6", padding: "24px 28px", marginBottom: "28px" }}>
+              <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "9px", letterSpacing: "0.2em", textTransform: "uppercase", color: "#8b6634", marginBottom: "16px" }}>Add Admin User</p>
+              <form
+                onSubmit={async e => {
+                  e.preventDefault();
+                  setAdminAddStatus("loading");
+                  setAdminAddError("");
+                  const res = await fetch("/api/admin/admins", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: `${adminFirstName.trim()} ${adminLastName.trim()}`.trim(), email: adminEmail }),
+                  });
+                  const data = await res.json();
+                  if (!res.ok) { setAdminAddStatus("error"); setAdminAddError(data.error ?? "Failed."); return; }
+                  setAdminUsers(prev => [...prev, data.admin]);
+                  setAdminFirstName(""); setAdminLastName(""); setAdminEmail("");
+                  setAdminAddStatus("done");
+                  setTimeout(() => setAdminAddStatus("idle"), 3000);
+                }}
+                style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}
+              >
+                <input type="text" required value={adminFirstName} onChange={e => { setAdminFirstName(e.target.value); setAdminAddStatus("idle"); }} placeholder="First name" style={{ ...S.input, maxWidth: "160px" }} />
+                <input type="text" required value={adminLastName} onChange={e => { setAdminLastName(e.target.value); setAdminAddStatus("idle"); }} placeholder="Last name" style={{ ...S.input, maxWidth: "160px" }} />
+                <input type="email" required value={adminEmail} onChange={e => { setAdminEmail(e.target.value); setAdminAddStatus("idle"); }} placeholder="Email address" style={{ ...S.input, maxWidth: "260px" }} />
+                <button type="submit" disabled={adminAddStatus === "loading"} style={{ ...S.btn, background: adminAddStatus === "loading" ? "#9c8878" : "#1a1209" }}>
+                  {adminAddStatus === "loading" ? "Adding..." : "Add Admin"}
+                </button>
+              </form>
+              {adminAddStatus === "done" && <p style={{ fontSize: "13px", color: "#4caf50", marginTop: "10px" }}>Admin added successfully.</p>}
+              {adminAddStatus === "error" && <p style={{ fontSize: "13px", color: "#c0392b", marginTop: "10px" }}>{adminAddError}</p>}
+            </div>
+
+            {/* Admin list */}
+            <div style={{ border: "1px solid #e8e0d6", overflow: "auto", background: "#fff" }}>
+              <table style={S.table}>
+                <thead>
+                  <tr>
+                    <th style={S.th}>First Name</th>
+                    <th style={S.th}>Last Name</th>
+                    <th style={S.th}>Email</th>
+                    <th style={S.th}>Added</th>
+                    <th style={S.th}>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {adminUsers.length === 0 ? (
+                    <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", color: "#9c8878", padding: "32px" }}>No admin users added yet.</td></tr>
+                  ) : adminUsers.map(admin => {
+                    const { first, last } = splitName(admin.name);
+                    return (
+                      <tr key={admin.id}
+                        onMouseEnter={e => (e.currentTarget.style.background = "#faf7f4")}
+                        onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                        <td style={{ ...S.td, fontWeight: 600 }}>{first}</td>
+                        <td style={{ ...S.td, fontWeight: 600 }}>{last}</td>
+                        <td style={{ ...S.td, color: "#6b5c4e" }}>{admin.email}</td>
+                        <td style={{ ...S.td, color: "#9c8878", whiteSpace: "nowrap" }}>{formatDate(admin.createdAt)}</td>
+                        <td style={S.td}>
+                          <button
+                            onClick={async () => {
+                              if (!confirm(`Remove ${admin.name} as admin?`)) return;
+                              await fetch("/api/admin/admins", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: admin.id }) });
+                              setAdminUsers(prev => prev.filter(a => a.id !== admin.id));
+                            }}
+                            style={{ ...S.btn, fontSize: "9px", padding: "6px 12px", background: "#c0392b" }}
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
         )}

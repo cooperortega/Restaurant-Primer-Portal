@@ -121,6 +121,13 @@ export interface AccessRequest {
   submittedAt: string;
 }
 
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: string;
+}
+
 export const db = {
   subscribers: {
     getAll: (): Promise<Subscriber[]> => readData("subscribers", []),
@@ -250,6 +257,26 @@ export const db = {
         all[idx].status = status;
         await writeData("access_requests", all);
       }
+    },
+  },
+
+  admins: {
+    getAll: (): Promise<AdminUser[]> => readData("admins", []),
+    create: async (name: string, email: string): Promise<AdminUser> => {
+      const all = await readData<AdminUser[]>("admins", []);
+      const admin: AdminUser = {
+        id: "admin-" + Date.now(),
+        name,
+        email,
+        createdAt: new Date().toISOString(),
+      };
+      all.push(admin);
+      await writeData("admins", all);
+      return admin;
+    },
+    remove: async (id: string): Promise<void> => {
+      const all = await readData<AdminUser[]>("admins", []);
+      await writeData("admins", all.filter((a) => a.id !== id));
     },
   },
 };
