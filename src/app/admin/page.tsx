@@ -766,6 +766,16 @@ export default function AdminDashboard() {
                           >
                             {inviteStatus[sub.id] === "loading" ? "Sending..." : inviteStatus[sub.id] === "sent" ? "Invited!" : inviteStatus[sub.id] === "error" ? "Failed" : "Invite"}
                           </button>
+                          <button
+                            onClick={async () => {
+                              if (!confirm(`Remove ${sub.name} from subscribers?`)) return;
+                              await fetch("/api/admin/subscribers", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: sub.id }) });
+                              setSubscribers(prev => prev.filter(s => s.id !== sub.id));
+                            }}
+                            style={{ ...S.btn, fontSize: "9px", padding: "6px 12px", background: "#c0392b" }}
+                          >
+                            Remove
+                          </button>
                         </td>
                       </tr>
                     );

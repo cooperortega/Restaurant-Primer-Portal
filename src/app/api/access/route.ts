@@ -77,9 +77,6 @@ export async function POST(req: NextRequest) {
             <p style="margin:0 0 32px;font-family:Arial,sans-serif;font-size:15px;color:#4a3728;line-height:1.7;">
               You can also access it anytime by visiting the portal and signing in with your email address.
             </p>
-            <p style="margin:0;font-family:Arial,sans-serif;font-size:13px;color:#9c8878;line-height:1.6;">
-              Restaurant Primer — Vol. 1, Issue 1
-            </p>
           </td>
         </tr>
         <tr>
