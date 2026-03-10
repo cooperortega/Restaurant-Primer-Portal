@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
-type Tab = "overview" | "logs" | "subscribers" | "generate" | "surveys";
+type Tab = "overview" | "logs" | "subscribers" | "generate" | "surveys" | "email";
 
 interface Log {
   id: string;
@@ -128,6 +128,13 @@ export default function AdminDashboard() {
   const [addStatus, setAddStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [addError, setAddError] = useState("");
 
+  // Email composer
+  const [emailModal, setEmailModal] = useState<{ ids: string[]; names: string } | null>(null);
+  const [emailSubject, setEmailSubject] = useState("Your Restaurant Primer Access Link");
+  const [emailBody, setEmailBody] = useState("Your access link to the Restaurant Primer is ready. Click the button below to read the latest issue.\n\nThis link is unique to you and will log you in automatically.");
+  const [emailStatus, setEmailStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [emailResult, setEmailResult] = useState<{ sent: number; failed: number } | null>(null);
+
   // Search/filter
   const [logSearch, setLogSearch] = useState("");
   const [subSearch, setSubSearch] = useState("");
@@ -202,6 +209,36 @@ export default function AdminDashboard() {
     }
   }
 
+  async function handleSendEmail(e: React.FormEvent) {
+    e.preventDefault();
+    if (!emailModal) return;
+    setEmailStatus("loading");
+    const res = await fetch("/api/admin/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subscriberIds: emailModal.ids, subject: emailSubject, body: emailBody }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setEmailResult({ sent: data.sent, failed: data.failed });
+      setEmailStatus("done");
+    } else {
+      setEmailStatus("error");
+    }
+  }
+
+  function openEmailModal(ids: string[], names: string) {
+    setEmailModal({ ids, names });
+    setEmailStatus("idle");
+    setEmailResult(null);
+  }
+
+  function closeEmailModal() {
+    setEmailModal(null);
+    setEmailStatus("idle");
+    setEmailResult(null);
+  }
+
   function copyToClipboard(text: string) {
     navigator.clipboard.writeText(text);
     setCopied(true);
@@ -267,6 +304,7 @@ export default function AdminDashboard() {
     { id: "subscribers", label: "Subscribers", icon: "◎" },
     { id: "surveys", label: "Feedback", icon: "◈" },
     { id: "generate", label: "Generate Link", icon: "⊕" },
+    { id: "email", label: "Send Email", icon: "✉" },
   ];
 
   return (
@@ -537,6 +575,7 @@ export default function AdminDashboard() {
                     </th>
                     <th style={S.th}>Last Opened</th>
                     <th style={S.th}>Status</th>
+                    <th style={S.th}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -560,10 +599,7 @@ export default function AdminDashboard() {
                         </td>
                         <td style={S.td}>
                           <span style={{
-                            fontSize: "10px",
-                            padding: "3px 8px",
-                            letterSpacing: "0.06em",
-                            border: "1px solid",
+                            fontSize: "10px", padding: "3px 8px", letterSpacing: "0.06em", border: "1px solid",
                             ...(sub.totalOpens > 0
                               ? { color: "#4caf50", borderColor: "rgba(76,175,80,0.3)", background: "rgba(76,175,80,0.08)" }
                               : { color: "#9c8878", borderColor: "#e8e0d6", background: "#f8f5f1" }),
@@ -571,12 +607,30 @@ export default function AdminDashboard() {
                             {sub.totalOpens > 0 ? "Opened" : "Pending"}
                           </span>
                         </td>
+                        <td style={S.td}>
+                          <button
+                            onClick={() => openEmailModal([sub.id], sub.name)}
+                            style={{ ...S.btn, fontSize: "9px", padding: "6px 12px", background: "#8b6634" }}
+                          >
+                            ✉ Send Email
+                          </button>
+                        </td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
             </div>
+            {sortedSubs.length > 0 && (
+              <div style={{ marginTop: "16px", textAlign: "right" }}>
+                <button
+                  onClick={() => openEmailModal(sortedSubs.map(s => s.id), `all ${sortedSubs.length} subscribers`)}
+                  style={{ ...S.btn, background: "#8b6634", fontSize: "10px" }}
+                >
+                  ✉ Send Email to All ({sortedSubs.length})
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -830,7 +884,118 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* ── EMAIL TAB ── */}
+        {tab === "email" && (
+          <div>
+            <div style={{ marginBottom: "36px" }}>
+              <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "9px", letterSpacing: "0.22em", textTransform: "uppercase", color: "#8b6634", marginBottom: "8px" }}>Email</p>
+              <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "30px", fontWeight: 400, color: "#1a1209" }}>Send Email</h2>
+            </div>
+
+            <div style={{ maxWidth: "720px" }}>
+              <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", color: "#6b5c4e", lineHeight: 1.7, marginBottom: "32px" }}>
+                Compose an email below, then choose which subscribers to send it to. Each recipient receives a unique auto-login link that logs them in automatically when clicked.
+              </p>
+
+              <form onSubmit={handleSendEmail} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                <div>
+                  <label style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "9px", letterSpacing: "0.2em", textTransform: "uppercase", color: "#8b6634", display: "block", marginBottom: "8px" }}>
+                    Subject Line
+                  </label>
+                  <input
+                    type="text" required value={emailSubject}
+                    onChange={e => { setEmailSubject(e.target.value); setEmailStatus("idle"); }}
+                    style={{ ...S.input, fontSize: "14px" }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "9px", letterSpacing: "0.2em", textTransform: "uppercase", color: "#8b6634", display: "block", marginBottom: "8px" }}>
+                    Email Body <span style={{ color: "#9c8878", textTransform: "none", letterSpacing: 0, fontSize: "11px" }}>(the access button is added automatically)</span>
+                  </label>
+                  <textarea
+                    required rows={6} value={emailBody}
+                    onChange={e => { setEmailBody(e.target.value); setEmailStatus("idle"); }}
+                    style={{ ...S.input, resize: "vertical", lineHeight: 1.7, fontSize: "14px" }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "9px", letterSpacing: "0.2em", textTransform: "uppercase", color: "#8b6634", display: "block", marginBottom: "12px" }}>
+                    Send To
+                  </label>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                    <button type="button"
+                      onClick={() => openEmailModal(subscribers.map(s => s.id), `all ${subscribers.length} subscribers`)}
+                      style={{ ...S.btn, background: "#8b6634", fontSize: "10px" }}
+                    >
+                      ✉ All Subscribers ({subscribers.length})
+                    </button>
+                    {subscribers.map(sub => {
+                      const { first, last } = splitName(sub.name);
+                      return (
+                        <button key={sub.id} type="button"
+                          onClick={() => openEmailModal([sub.id], sub.name)}
+                          style={{ ...S.btnGhost, fontSize: "10px", padding: "8px 16px" }}
+                        >
+                          {first} {last}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
       </main>
+
+      {/* ── EMAIL COMPOSE MODAL ── */}
+      {emailModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ background: "#fff", border: "1px solid #e0d6ca", boxShadow: "0 8px 40px rgba(0,0,0,0.15)", width: "100%", maxWidth: "560px", padding: "40px", position: "relative" }}>
+            <button onClick={closeEmailModal} style={{ position: "absolute", top: "16px", right: "20px", background: "none", border: "none", fontSize: "20px", color: "#9c8878", cursor: "pointer" }}>×</button>
+
+            {emailStatus === "done" && emailResult ? (
+              <div style={{ textAlign: "center", padding: "20px 0" }}>
+                <p style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "24px", color: "#8b6634", marginBottom: "12px" }}>
+                  {emailResult.failed === 0 ? "Emails Sent!" : "Partially Sent"}
+                </p>
+                <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "15px", color: "#6b5c4e", lineHeight: 1.7 }}>
+                  ✓ {emailResult.sent} sent successfully{emailResult.failed > 0 ? ` · ${emailResult.failed} failed` : ""}.
+                </p>
+                <button onClick={closeEmailModal} style={{ ...S.btn, marginTop: "28px" }}>Close</button>
+              </div>
+            ) : (
+              <form onSubmit={handleSendEmail} style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+                <div>
+                  <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "9px", letterSpacing: "0.2em", textTransform: "uppercase", color: "#8b6634", marginBottom: "6px" }}>Sending To</p>
+                  <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", color: "#1a1209", fontWeight: 600 }}>{emailModal.names}</p>
+                </div>
+                <div>
+                  <label style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "9px", letterSpacing: "0.2em", textTransform: "uppercase", color: "#8b6634", display: "block", marginBottom: "8px" }}>Subject</label>
+                  <input type="text" required value={emailSubject} onChange={e => { setEmailSubject(e.target.value); setEmailStatus("idle"); }} style={{ ...S.input, fontSize: "14px" }} />
+                </div>
+                <div>
+                  <label style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "9px", letterSpacing: "0.2em", textTransform: "uppercase", color: "#8b6634", display: "block", marginBottom: "8px" }}>
+                    Body <span style={{ color: "#9c8878", textTransform: "none", letterSpacing: 0, fontSize: "11px" }}>(access button added automatically)</span>
+                  </label>
+                  <textarea required rows={5} value={emailBody} onChange={e => { setEmailBody(e.target.value); setEmailStatus("idle"); }} style={{ ...S.input, resize: "vertical", lineHeight: 1.7, fontSize: "14px" }} />
+                </div>
+                {emailStatus === "error" && <p style={{ fontSize: "13px", color: "#c0392b" }}>Something went wrong. Check your Resend API key and try again.</p>}
+                <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                  <button type="button" onClick={closeEmailModal} style={{ ...S.btnGhost }}>Cancel</button>
+                  <button type="submit" disabled={emailStatus === "loading"} style={{ ...S.btn, background: emailStatus === "loading" ? "#9c8878" : "#1a1209" }}>
+                    {emailStatus === "loading" ? "Sending..." : `Send Email`}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
