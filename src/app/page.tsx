@@ -347,10 +347,7 @@ export default function HomePage() {
                   style={{ background: "#fff", border: "2px solid #d0c4b8", color: "#1a1209", padding: "14px 18px", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "15px", outline: "none", width: "100%" }} />
                 <textarea rows={4} value={contactForm.message} onChange={e => setContactForm(p => ({ ...p, message: e.target.value }))} placeholder="Your message"
                   style={{ background: "#fff", border: "2px solid #d0c4b8", color: "#1a1209", padding: "14px 18px", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "15px", outline: "none", width: "100%", resize: "vertical" }} />
-                <label style={{ display: "flex", alignItems: "flex-start", gap: "10px", cursor: "pointer" }}>
-                  <input type="checkbox" checked={contactForm.newsletter} onChange={e => setContactForm(p => ({ ...p, newsletter: e.target.checked }))} style={{ marginTop: "3px", accentColor: "#8b6634", width: "16px", height: "16px" }} />
-                  <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", color: "#6b5c4e", lineHeight: 1.5 }}>Add me to the Restaurant Primer newsletter list</span>
-                </label>
+
                 <button type="submit"
                   style={{ background: "#1a1209", border: "none", color: "#fff", padding: "16px", fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "12px", letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer", marginTop: "8px", fontWeight: 700, transition: "background .2s" }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#3a2a1a"; }}
