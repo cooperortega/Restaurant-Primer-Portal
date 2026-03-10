@@ -82,8 +82,13 @@ export default function HomePage() {
     }
   }
 
-  function handleContactSubmit(e: React.FormEvent) {
+  async function handleContactSubmit(e: React.FormEvent) {
     e.preventDefault();
+    await fetch("/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: contactForm.name, email: contactForm.email, message: contactForm.message }),
+    });
     setContactStatus("sent");
   }
 

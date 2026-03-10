@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
-type Tab = "overview" | "logs" | "subscribers" | "generate" | "surveys" | "email";
+type Tab = "overview" | "logs" | "subscribers" | "generate" | "surveys" | "email" | "requests";
 
 interface Log {
   id: string;
@@ -34,6 +34,15 @@ interface Survey {
   wouldRecommend: "yes" | "probably" | "not_yet";
   futureTopics: string;
   comments: string;
+  submittedAt: string;
+}
+
+interface AccessRequest {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  status: "pending" | "granted" | "dismissed";
   submittedAt: string;
 }
 
@@ -100,6 +109,8 @@ export default function AdminDashboard() {
   const [logs, setLogs] = useState<Log[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [surveys, setSurveys] = useState<Survey[]>([]);
+  const [accessRequests, setAccessRequests] = useState<AccessRequest[]>([]);
+  const [requestActionStatus, setRequestActionStatus] = useState<Record<string, "loading" | "done" | "error">>({});
   const [loading, setLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
   const [expandedSurvey, setExpandedSurvey] = useState<string | null>(null);
@@ -140,10 +151,11 @@ export default function AdminDashboard() {
   const [subSearch, setSubSearch] = useState("");
 
   const fetchData = useCallback(async () => {
-    const [logsRes, subsRes, survRes] = await Promise.all([
+    const [logsRes, subsRes, survRes, reqRes] = await Promise.all([
       fetch("/api/admin/logs"),
       fetch("/api/admin/subscribers"),
       fetch("/api/admin/surveys"),
+      fetch("/api/admin/access-requests"),
     ]);
     if (logsRes.status === 401 || subsRes.status === 401) {
       router.replace("/admin/login");
@@ -152,9 +164,11 @@ export default function AdminDashboard() {
     const logsData = await logsRes.json();
     const subsData = await subsRes.json();
     const survData = await survRes.json();
+    const reqData = await reqRes.json();
     setLogs(logsData.logs ?? []);
     setSubscribers(subsData.subscribers ?? []);
     setSurveys(survData.surveys ?? []);
+    setAccessRequests(reqData.requests ?? []);
     setLoading(false);
     setAuthChecked(true);
   }, [router]);
@@ -239,6 +253,21 @@ export default function AdminDashboard() {
     setEmailResult(null);
   }
 
+  async function handleRequestAction(id: string, action: "grant" | "dismiss") {
+    setRequestActionStatus(prev => ({ ...prev, [id]: "loading" }));
+    const res = await fetch("/api/admin/access-requests", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, action }),
+    });
+    if (res.ok) {
+      setRequestActionStatus(prev => ({ ...prev, [id]: "done" }));
+      fetchData();
+    } else {
+      setRequestActionStatus(prev => ({ ...prev, [id]: "error" }));
+    }
+  }
+
   function copyToClipboard(text: string) {
     navigator.clipboard.writeText(text);
     setCopied(true);
@@ -298,8 +327,11 @@ export default function AdminDashboard() {
     return subSortDir === "asc" ? cmp : -cmp;
   });
 
-  const navItems: { id: Tab; label: string; icon: string }[] = [
+  const pendingRequests = accessRequests.filter(r => r.status === "pending").length;
+
+  const navItems: { id: Tab; label: string; icon: string; badge?: number }[] = [
     { id: "overview", label: "Overview", icon: "▦" },
+    { id: "requests", label: "Access Requests", icon: "⊞", badge: pendingRequests || undefined },
     { id: "logs", label: "Access Logs", icon: "≡" },
     { id: "subscribers", label: "Subscribers", icon: "◎" },
     { id: "surveys", label: "Feedback", icon: "◈" },
@@ -347,9 +379,15 @@ export default function AdminDashboard() {
                 letterSpacing: "0.08em",
                 color: tab === item.id ? "#1a1209" : "#6b5c4e",
                 fontWeight: tab === item.id ? 600 : 400,
+                flex: 1,
               }}>
                 {item.label}
               </span>
+              {item.badge ? (
+                <span style={{ background: "#c0392b", color: "#fff", fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "9px", fontWeight: 700, borderRadius: "10px", padding: "2px 7px", letterSpacing: "0.04em" }}>
+                  {item.badge}
+                </span>
+              ) : null}
             </button>
           ))}
         </nav>
@@ -630,6 +668,82 @@ export default function AdminDashboard() {
                   ✉ Send Email to All ({sortedSubs.length})
                 </button>
               </div>
+            )}
+          </div>
+        )}
+
+        {/* ────────────── ACCESS REQUESTS ────────────── */}
+        {tab === "requests" && (
+          <div>
+            <div style={{ marginBottom: "28px" }}>
+              <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "24px", fontWeight: 400, color: "#1a1209", margin: "0 0 6px" }}>Access Requests</h2>
+              <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", color: "#9c8878", margin: 0 }}>
+                Submitted via the Contact form. Grant access to send the user a personalized invite link.
+              </p>
+            </div>
+
+            {accessRequests.length === 0 ? (
+              <div style={{ background: "#fff", border: "1px solid #e8e0d6", padding: "48px", textAlign: "center", color: "#9c8878", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px" }}>
+                No access requests yet.
+              </div>
+            ) : (
+              <table style={S.table}>
+                <thead>
+                  <tr>
+                    <th style={S.th}>Name</th>
+                    <th style={S.th}>Email</th>
+                    <th style={S.th}>Message</th>
+                    <th style={S.th}>Submitted</th>
+                    <th style={S.th}>Status</th>
+                    <th style={S.th}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {accessRequests.map(req => (
+                    <tr key={req.id} style={{ background: req.status === "pending" ? "#fff" : "#faf7f4" }}>
+                      <td style={S.td}><span style={{ fontWeight: 600 }}>{req.name}</span></td>
+                      <td style={S.td}>{req.email}</td>
+                      <td style={{ ...S.td, maxWidth: "220px", color: "#6b5c4e", fontSize: "13px" }}>{req.message || "—"}</td>
+                      <td style={{ ...S.td, whiteSpace: "nowrap" as const, color: "#9c8878" }}>{formatDate(req.submittedAt)}</td>
+                      <td style={S.td}>
+                        <span style={{
+                          fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "9px", letterSpacing: "0.1em",
+                          textTransform: "uppercase" as const, fontWeight: 700, padding: "3px 8px",
+                          background: req.status === "pending" ? "#fff3cd" : req.status === "granted" ? "#d4edda" : "#f0ebe4",
+                          color: req.status === "pending" ? "#856404" : req.status === "granted" ? "#155724" : "#9c8878",
+                          border: `1px solid ${req.status === "pending" ? "#ffc107" : req.status === "granted" ? "#28a745" : "#d0c4b8"}`,
+                        }}>
+                          {req.status}
+                        </span>
+                      </td>
+                      <td style={S.td}>
+                        {req.status === "pending" ? (
+                          <div style={{ display: "flex", gap: "8px" }}>
+                            <button
+                              onClick={() => handleRequestAction(req.id, "grant")}
+                              disabled={requestActionStatus[req.id] === "loading"}
+                              style={{ ...S.btn, padding: "8px 16px", fontSize: "9px", background: "#1a1209" }}
+                            >
+                              {requestActionStatus[req.id] === "loading" ? "..." : "Grant Access"}
+                            </button>
+                            <button
+                              onClick={() => handleRequestAction(req.id, "dismiss")}
+                              disabled={requestActionStatus[req.id] === "loading"}
+                              style={{ ...S.btnGhost, padding: "7px 14px", fontSize: "9px" }}
+                            >
+                              Dismiss
+                            </button>
+                          </div>
+                        ) : (
+                          <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "12px", color: "#9c8878" }}>
+                            {req.status === "granted" ? "Invite sent" : "Dismissed"}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             )}
           </div>
         )}

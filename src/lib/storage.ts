@@ -80,6 +80,15 @@ export interface SurveyResponse {
   submittedAt: string;
 }
 
+export interface AccessRequest {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  status: "pending" | "granted" | "dismissed";
+  submittedAt: string;
+}
+
 export const db = {
   subscribers: {
     getAll: (): Subscriber[] => readJson("subscribers.json", []),
@@ -172,6 +181,34 @@ export const db = {
       all.push(survey);
       writeJson("surveys.json", all);
       return survey;
+    },
+  },
+  accessRequests: {
+    getAll: (): AccessRequest[] =>
+      readJson<AccessRequest[]>("access_requests.json", []).sort(
+        (a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
+      ),
+    create: (name: string, email: string, message: string): AccessRequest => {
+      const all = readJson<AccessRequest[]>("access_requests.json", []);
+      const req: AccessRequest = {
+        id: "req-" + Date.now(),
+        name,
+        email,
+        message,
+        status: "pending",
+        submittedAt: new Date().toISOString(),
+      };
+      all.push(req);
+      writeJson("access_requests.json", all);
+      return req;
+    },
+    updateStatus: (id: string, status: "granted" | "dismissed"): void => {
+      const all = readJson<AccessRequest[]>("access_requests.json", []);
+      const idx = all.findIndex(r => r.id === id);
+      if (idx !== -1) {
+        all[idx].status = status;
+        writeJson("access_requests.json", all);
+      }
     },
   },
 };
