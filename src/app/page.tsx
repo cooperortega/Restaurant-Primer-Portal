@@ -142,7 +142,7 @@ export default function HomePage() {
                 Sign out
               </button>
             </div>
-          )}
+          ) : null}
         </nav>
       </header>
 
