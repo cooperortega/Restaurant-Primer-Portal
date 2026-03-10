@@ -364,7 +364,7 @@ export default function HomePage() {
       )}
 
       {/* ── PROFESSIONAL FEEDBACK SURVEY ── */}
-      <section style={{ background: "#fff", borderTop: "1px solid #e0d6ca", padding: "100px 20px" }}>
+      {session && <section style={{ background: "#fff", borderTop: "1px solid #e0d6ca", padding: "100px 20px" }}>
         <div style={{ maxWidth: "680px", margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: "56px" }}>
             <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.28em", textTransform: "uppercase", color: "#8b6634", marginBottom: "16px" }}>
@@ -529,7 +529,7 @@ export default function HomePage() {
             </form>
           )}
         </div>
-      </section>
+      </section>}
 
       {/* ── FOOTER ── */}
       <footer style={{ background: "#fff", borderTop: "1px solid #e0d6ca", padding: "32px 40px", textAlign: "center" }}>
