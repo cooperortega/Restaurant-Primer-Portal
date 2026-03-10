@@ -422,6 +422,7 @@ export default function HomePage() {
                   </div>
                   <div style={{ display: "flex", width: "100%", maxWidth: "310px", justifyContent: "space-between" }}>
                     <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "12px", color: "#9c8878" }}>Not useful</span>
+                    <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "12px", color: "#9c8878" }}>Somewhat useful</span>
                     <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "12px", color: "#9c8878" }}>Very useful</span>
                   </div>
                 </div>
@@ -456,6 +457,7 @@ export default function HomePage() {
                   </div>
                   <div style={{ display: "flex", width: "100%", maxWidth: "310px", justifyContent: "space-between" }}>
                     <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "12px", color: "#9c8878" }}>Unclear</span>
+                    <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "12px", color: "#9c8878" }}>Somewhat Clear</span>
                     <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "12px", color: "#9c8878" }}>Very Clear</span>
                   </div>
                 </div>
@@ -487,6 +489,7 @@ export default function HomePage() {
                   </div>
                   <div style={{ display: "flex", width: "100%", maxWidth: "310px", justifyContent: "space-between" }}>
                     <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "12px", color: "#9c8878" }}>Unlikely</span>
+                    <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "12px", color: "#9c8878" }}>Somewhat Likely</span>
                     <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "12px", color: "#9c8878" }}>Very Likely</span>
                   </div>
                 </div>
