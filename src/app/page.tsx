@@ -121,10 +121,10 @@ export default function HomePage() {
             onMouseLeave={e => (e.currentTarget.style.opacity = "1")}>
             Restaurant Primer
           </a>
-          <a href="#contact" style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#6b5c4e", textDecoration: "none" }}
+          <a href={session ? "#feedback" : "#contact"} style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#6b5c4e", textDecoration: "none" }}
             onMouseEnter={e => (e.currentTarget.style.opacity = "0.7")}
             onMouseLeave={e => (e.currentTarget.style.opacity = "1")}>
-            Contact
+            {session ? "Feedback" : "Contact"}
           </a>
           {session ? (
             <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
@@ -370,7 +370,7 @@ export default function HomePage() {
       )}
 
       {/* ── PROFESSIONAL FEEDBACK SURVEY ── */}
-      {session && <section style={{ background: "#fff", borderTop: "1px solid #e0d6ca", padding: "100px 20px" }}>
+      {session && <section id="feedback" style={{ background: "#fff", borderTop: "1px solid #e0d6ca", padding: "100px 20px" }}>
         <div style={{ maxWidth: "680px", margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: "56px" }}>
             <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.28em", textTransform: "uppercase", color: "#8b6634", marginBottom: "16px" }}>
