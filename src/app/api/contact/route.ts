@@ -5,10 +5,7 @@ import { db } from "@/lib/storage";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const ADMIN_EMAILS = [
-  "jeb@guideboatadvisors.com",
-  "justin@guideboatadvisors.com",
   "cooper@guideboatadvisors.com",
-  "executiverrs@gmail.com",
 ];
 
 export async function POST(req: NextRequest) {
