@@ -6,6 +6,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 const ADMIN_EMAILS = [
   "cooper@guideboatadvisors.com",
+  "cooportega@gmail.com",
 ];
 
 export async function POST(req: NextRequest) {
