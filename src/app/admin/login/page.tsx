@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { setSession } from "@/lib/session";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -22,6 +23,8 @@ export default function AdminLoginPage() {
     });
 
     if (res.ok) {
+      const data = await res.json();
+      setSession({ name: data.name, email: data.email });
       router.push("/admin");
     } else {
       const data = await res.json();

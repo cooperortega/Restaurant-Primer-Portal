@@ -34,8 +34,20 @@ export async function POST(req: NextRequest) {
     maxAge: 60 * 60 * 8, // 8 hours
     path: "/",
   });
+  cookieStore.set("is_admin", "1", {
+    httpOnly: false,
+    secure: false,
+    sameSite: "lax",
+    maxAge: 60 * 60 * 8,
+    path: "/",
+  });
 
-  return NextResponse.json({ ok: true });
+  const subscriber = await db.subscribers.getByEmail(normalizedEmail);
+  return NextResponse.json({
+    ok: true,
+    name: subscriber?.name ?? email.trim(),
+    email: normalizedEmail,
+  });
 }
 
 export async function DELETE() {
