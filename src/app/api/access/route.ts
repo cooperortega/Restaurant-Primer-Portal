@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
               Thank you for joining the Restaurant Primer. We've attached a copy of the latest issue for you to read at your convenience.
             </p>
             <p style="margin:0 0 32px;font-family:Arial,sans-serif;font-size:15px;color:#4a3728;line-height:1.7;">
-              You can also access it anytime by visiting the portal and signing in with your email address.
+              You can also access it anytime by visiting <a href="https://restaurantprimer.com" style="color:#8b6634;text-decoration:none;font-weight:600;">restaurantprimer.com</a> and signing in with your email address.
             </p>
           </td>
         </tr>
