@@ -42,7 +42,7 @@ interface AccessRequest {
   name: string;
   email: string;
   message: string;
-  status: "pending" | "granted" | "dismissed";
+  status: "pending" | "added" | "granted" | "dismissed";
   submittedAt: string;
 }
 
@@ -253,7 +253,7 @@ export default function AdminDashboard() {
     setEmailResult(null);
   }
 
-  async function handleRequestAction(id: string, action: "grant" | "dismiss") {
+  async function handleRequestAction(id: string, action: "add" | "invite" | "dismiss") {
     setRequestActionStatus(prev => ({ ...prev, [id]: "loading" }));
     const res = await fetch("/api/admin/access-requests", {
       method: "PATCH",
@@ -266,6 +266,20 @@ export default function AdminDashboard() {
     } else {
       setRequestActionStatus(prev => ({ ...prev, [id]: "error" }));
     }
+  }
+
+  const [bulkStatus, setBulkStatus] = useState<"idle" | "loading" | "done">("idle");
+
+  async function handleBulkAction(action: "add_all" | "invite_all") {
+    setBulkStatus("loading");
+    await fetch("/api/admin/access-requests", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+    });
+    setBulkStatus("done");
+    fetchData();
+    setTimeout(() => setBulkStatus("idle"), 2000);
   }
 
   function copyToClipboard(text: string) {
@@ -673,80 +687,105 @@ export default function AdminDashboard() {
         )}
 
         {/* ────────────── ACCESS REQUESTS ────────────── */}
-        {tab === "requests" && (
-          <div>
-            <div style={{ marginBottom: "28px" }}>
-              <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "24px", fontWeight: 400, color: "#1a1209", margin: "0 0 6px" }}>Access Requests</h2>
-              <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", color: "#9c8878", margin: 0 }}>
-                Submitted via the Contact form. Grant access to send the user a personalized invite link.
-              </p>
-            </div>
-
-            {accessRequests.length === 0 ? (
-              <div style={{ background: "#fff", border: "1px solid #e8e0d6", padding: "48px", textAlign: "center", color: "#9c8878", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px" }}>
-                No access requests yet.
+        {tab === "requests" && (() => {
+          const pending = accessRequests.filter(r => r.status === "pending");
+          const added = accessRequests.filter(r => r.status === "added");
+          const statusBg: Record<string, string> = { pending: "#fff3cd", added: "#cce5ff", granted: "#d4edda", dismissed: "#f0ebe4" };
+          const statusColor: Record<string, string> = { pending: "#856404", added: "#004085", granted: "#155724", dismissed: "#9c8878" };
+          const statusBorder: Record<string, string> = { pending: "#ffc107", added: "#b8daff", granted: "#28a745", dismissed: "#d0c4b8" };
+          return (
+            <div>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", flexWrap: "wrap" as const, gap: "16px" }}>
+                <div>
+                  <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "24px", fontWeight: 400, color: "#1a1209", margin: "0 0 6px" }}>Access Requests</h2>
+                  <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", color: "#9c8878", margin: 0 }}>
+                    Submitted via the Contact form. Add users first, then send invite links.
+                  </p>
+                </div>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  {pending.length > 0 && (
+                    <button
+                      onClick={() => handleBulkAction("add_all")}
+                      disabled={bulkStatus === "loading"}
+                      style={{ ...S.btn, padding: "10px 20px", fontSize: "9px", background: "#4a3728" }}
+                    >
+                      {bulkStatus === "loading" ? "..." : `Add All Users (${pending.length})`}
+                    </button>
+                  )}
+                  {added.length > 0 && (
+                    <button
+                      onClick={() => handleBulkAction("invite_all")}
+                      disabled={bulkStatus === "loading"}
+                      style={{ ...S.btn, padding: "10px 20px", fontSize: "9px" }}
+                    >
+                      {bulkStatus === "loading" ? "..." : `Invite All Users (${added.length})`}
+                    </button>
+                  )}
+                </div>
               </div>
-            ) : (
-              <table style={S.table}>
-                <thead>
-                  <tr>
-                    <th style={S.th}>Name</th>
-                    <th style={S.th}>Email</th>
-                    <th style={S.th}>Message</th>
-                    <th style={S.th}>Submitted</th>
-                    <th style={S.th}>Status</th>
-                    <th style={S.th}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {accessRequests.map(req => (
-                    <tr key={req.id} style={{ background: req.status === "pending" ? "#fff" : "#faf7f4" }}>
-                      <td style={S.td}><span style={{ fontWeight: 600 }}>{req.name}</span></td>
-                      <td style={S.td}>{req.email}</td>
-                      <td style={{ ...S.td, maxWidth: "220px", color: "#6b5c4e", fontSize: "13px" }}>{req.message || "—"}</td>
-                      <td style={{ ...S.td, whiteSpace: "nowrap" as const, color: "#9c8878" }}>{formatDate(req.submittedAt)}</td>
-                      <td style={S.td}>
-                        <span style={{
-                          fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "9px", letterSpacing: "0.1em",
-                          textTransform: "uppercase" as const, fontWeight: 700, padding: "3px 8px",
-                          background: req.status === "pending" ? "#fff3cd" : req.status === "granted" ? "#d4edda" : "#f0ebe4",
-                          color: req.status === "pending" ? "#856404" : req.status === "granted" ? "#155724" : "#9c8878",
-                          border: `1px solid ${req.status === "pending" ? "#ffc107" : req.status === "granted" ? "#28a745" : "#d0c4b8"}`,
-                        }}>
-                          {req.status}
-                        </span>
-                      </td>
-                      <td style={S.td}>
-                        {req.status === "pending" ? (
-                          <div style={{ display: "flex", gap: "8px" }}>
-                            <button
-                              onClick={() => handleRequestAction(req.id, "grant")}
-                              disabled={requestActionStatus[req.id] === "loading"}
-                              style={{ ...S.btn, padding: "8px 16px", fontSize: "9px", background: "#1a1209" }}
-                            >
-                              {requestActionStatus[req.id] === "loading" ? "..." : "Grant Access"}
-                            </button>
-                            <button
-                              onClick={() => handleRequestAction(req.id, "dismiss")}
-                              disabled={requestActionStatus[req.id] === "loading"}
-                              style={{ ...S.btnGhost, padding: "7px 14px", fontSize: "9px" }}
-                            >
-                              Dismiss
-                            </button>
-                          </div>
-                        ) : (
-                          <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "12px", color: "#9c8878" }}>
-                            {req.status === "granted" ? "Invite sent" : "Dismissed"}
-                          </span>
-                        )}
-                      </td>
+
+              {accessRequests.length === 0 ? (
+                <div style={{ background: "#fff", border: "1px solid #e8e0d6", padding: "48px", textAlign: "center", color: "#9c8878", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px" }}>
+                  No access requests yet.
+                </div>
+              ) : (
+                <table style={S.table}>
+                  <thead>
+                    <tr>
+                      <th style={S.th}>Name</th>
+                      <th style={S.th}>Email</th>
+                      <th style={S.th}>Message</th>
+                      <th style={S.th}>Submitted</th>
+                      <th style={S.th}>Status</th>
+                      <th style={S.th}>Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        )}
+                  </thead>
+                  <tbody>
+                    {accessRequests.map(req => {
+                      const isLoading = requestActionStatus[req.id] === "loading";
+                      return (
+                        <tr key={req.id} style={{ background: req.status === "pending" || req.status === "added" ? "#fff" : "#faf7f4" }}>
+                          <td style={S.td}><span style={{ fontWeight: 600 }}>{req.name}</span></td>
+                          <td style={S.td}>{req.email}</td>
+                          <td style={{ ...S.td, maxWidth: "220px", color: "#6b5c4e", fontSize: "13px" }}>{req.message || "—"}</td>
+                          <td style={{ ...S.td, whiteSpace: "nowrap" as const, color: "#9c8878" }}>{formatDate(req.submittedAt)}</td>
+                          <td style={S.td}>
+                            <span style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "9px", letterSpacing: "0.1em", textTransform: "uppercase" as const, fontWeight: 700, padding: "3px 8px", background: statusBg[req.status], color: statusColor[req.status], border: `1px solid ${statusBorder[req.status]}` }}>
+                              {req.status}
+                            </span>
+                          </td>
+                          <td style={S.td}>
+                            {req.status === "pending" && (
+                              <div style={{ display: "flex", gap: "8px" }}>
+                                <button onClick={() => handleRequestAction(req.id, "add")} disabled={isLoading} style={{ ...S.btn, padding: "8px 16px", fontSize: "9px", background: "#4a3728" }}>
+                                  {isLoading ? "..." : "Add User"}
+                                </button>
+                                <button onClick={() => handleRequestAction(req.id, "dismiss")} disabled={isLoading} style={{ ...S.btnGhost, padding: "7px 14px", fontSize: "9px" }}>
+                                  Dismiss
+                                </button>
+                              </div>
+                            )}
+                            {req.status === "added" && (
+                              <button onClick={() => handleRequestAction(req.id, "invite")} disabled={isLoading} style={{ ...S.btn, padding: "8px 16px", fontSize: "9px" }}>
+                                {isLoading ? "..." : "Invite User"}
+                              </button>
+                            )}
+                            {req.status === "granted" && (
+                              <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "12px", color: "#9c8878" }}>Invite sent</span>
+                            )}
+                            {req.status === "dismissed" && (
+                              <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "12px", color: "#9c8878" }}>Dismissed</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          );
+        })()}
 
         {/* ────────────── SURVEYS ────────────── */}
         {tab === "surveys" && (() => {

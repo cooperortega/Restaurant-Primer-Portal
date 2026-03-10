@@ -85,7 +85,7 @@ export interface AccessRequest {
   name: string;
   email: string;
   message: string;
-  status: "pending" | "granted" | "dismissed";
+  status: "pending" | "added" | "granted" | "dismissed";
   submittedAt: string;
 }
 
@@ -202,7 +202,7 @@ export const db = {
       writeJson("access_requests.json", all);
       return req;
     },
-    updateStatus: (id: string, status: "granted" | "dismissed"): void => {
+    updateStatus: (id: string, status: "added" | "granted" | "dismissed"): void => {
       const all = readJson<AccessRequest[]>("access_requests.json", []);
       const idx = all.findIndex(r => r.id === id);
       if (idx !== -1) {
