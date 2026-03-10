@@ -111,7 +111,7 @@ function NewsletterViewer() {
           </Link>
           <a
             href="/newsletter.pdf"
-            download
+            download="2026 Restaurant Primer.pdf"
             style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#fff", background: "#1a1209", padding: "12px 24px", textDecoration: "none", fontWeight: 700 }}
             onMouseEnter={e => (e.currentTarget.style.background = "#3a2a1a")}
             onMouseLeave={e => (e.currentTarget.style.background = "#1a1209")}
