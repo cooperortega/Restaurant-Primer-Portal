@@ -122,9 +122,6 @@ export default function HomePage() {
           </a>
           {session ? (
             <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-              <span style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "13px", color: "#6b5c4e" }}>
-                Hi, <span style={{ color: "#8b6634", fontWeight: 600 }}>{session.name.split(" ")[0]}</span>
-              </span>
               <Link href="/view" style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#fff", background: "#1a1209", padding: "9px 20px", textDecoration: "none", fontWeight: 700 }}>
                 Open Restaurant Primer
               </Link>
