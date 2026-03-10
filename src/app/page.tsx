@@ -23,6 +23,45 @@ export default function HomePage() {
   const [contactForm, setContactForm] = useState({ name: "", email: "", message: "", newsletter: false });
   const [contactStatus, setContactStatus] = useState<"idle" | "sent">("idle");
 
+  // Professional feedback survey state
+  const [profRole, setProfRole] = useState("");
+  const [profUseful, setProfUseful] = useState(0);
+  const [profUsefulHover, setProfUsefulHover] = useState(0);
+  const [profSections, setProfSections] = useState<string[]>([]);
+  const [profClarity, setProfClarity] = useState("");
+  const [profTopics, setProfTopics] = useState("");
+  const [profRecommend, setProfRecommend] = useState("");
+  const [profHeard, setProfHeard] = useState("");
+  const [profStatus, setProfStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+
+  function toggleProfSection(opt: string) {
+    setProfSections(prev => prev.includes(opt) ? prev.filter(s => s !== opt) : [...prev, opt]);
+  }
+
+  async function handleProfSurveySubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!profRole || !profUseful || !profClarity || !profRecommend) return;
+    setProfStatus("loading");
+    const rec = profRecommend === "Yes" ? "yes" : profRecommend === "Maybe" ? "probably" : "not_yet";
+    try {
+      await fetch("/api/survey", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subscriberEmail: session?.email ?? "anonymous",
+          rating: profUseful,
+          mostValuable: profSections.join(", ") || "N/A",
+          wouldRecommend: rec,
+          futureTopics: profTopics,
+          comments: `Role: ${profRole} | Clarity: ${profClarity} | Other feedback: ${profHeard || "N/A"}`,
+        }),
+      });
+      setProfStatus("done");
+    } catch {
+      setProfStatus("error");
+    }
+  }
+
   // Survey state
   const [surveyRating, setSurveyRating] = useState(0);
   const [surveyHover, setSurveyHover] = useState(0);
@@ -373,7 +412,7 @@ export default function HomePage() {
                       2 — Which section was most valuable to you?
                     </p>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                      {["Industry Trends", "Restaurant Operations", "Financial Insights", "Marketing Tips", "Technology & Innovation"].map(opt => (
+                      {["The Restaurant Industry", "Understanding The Income Statement", "Corporate Income Statement Line Items", "Understanding EBITDA", "Balance Sheet", "Financial Return Analysis Techniques", "Key Accounting Changes", "Development", "Franchising"].map(opt => (
                         <button
                           key={opt}
                           type="button"
@@ -512,6 +551,161 @@ export default function HomePage() {
                 </form>
               )}
             </>
+          )}
+        </div>
+      </section>
+
+      {/* ── PROFESSIONAL FEEDBACK SURVEY ── */}
+      <section style={{ background: "#fff", borderTop: "1px solid #e0d6ca", padding: "100px 20px" }}>
+        <div style={{ maxWidth: "680px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "56px" }}>
+            <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.28em", textTransform: "uppercase", color: "#8b6634", marginBottom: "16px" }}>
+              Reader Feedback
+            </p>
+            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 400, color: "#1a1209", marginBottom: "16px" }}>
+              Share Your Feedback
+            </h2>
+            <div style={{ width: "40px", height: "2px", background: "#8b6634", margin: "0 auto 20px" }} />
+            <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "16px", color: "#6b5c4e", lineHeight: 1.7 }}>
+              Help us improve the Restaurant Primer for industry professionals.
+            </p>
+          </div>
+
+          {profStatus === "done" ? (
+            <div style={{ padding: "56px 40px", background: "#f8f5f1", border: "1px solid #e0d6ca", textAlign: "center" }}>
+              <p style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "26px", color: "#8b6634", marginBottom: "12px" }}>Thank you.</p>
+              <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "16px", color: "#6b5c4e", lineHeight: 1.7 }}>
+                Thank you for your feedback! Your response helps us improve the Primer for the industry.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleProfSurveySubmit} style={{ display: "flex", flexDirection: "column", gap: "40px" }}>
+
+              {/* Q1: Role */}
+              <div>
+                <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#8b6634", marginBottom: "14px" }}>
+                  1 — What best describes your role?
+                </p>
+                <select
+                  required
+                  value={profRole}
+                  onChange={e => setProfRole(e.target.value)}
+                  style={{ width: "100%", background: "#fff", border: "2px solid #d0c4b8", color: profRole ? "#1a1209" : "#9c8878", padding: "14px 18px", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "15px", outline: "none", appearance: "none", cursor: "pointer" }}
+                >
+                  <option value="" disabled>Select your role...</option>
+                  {["Operator / Brand Executive", "Franchisee / Multi-Unit Operator", "Investor / Analyst", "Lender / Banker", "Consultant / Advisor", "Other"].map(r => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Q2: Overall usefulness */}
+              <div>
+                <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#8b6634", marginBottom: "14px" }}>
+                  2 — How useful did you find the Primer overall?
+                </p>
+                <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <button key={star} type="button"
+                      onClick={() => setProfUseful(star)}
+                      onMouseEnter={() => setProfUsefulHover(star)}
+                      onMouseLeave={() => setProfUsefulHover(0)}
+                      style={{ background: "none", border: "none", cursor: "pointer", fontSize: "40px", lineHeight: 1, padding: "0 4px", color: (profUsefulHover || profUseful) >= star ? "#8b6634" : "#d0c4b8", transition: "color .1s" }}
+                    >★</button>
+                  ))}
+                  {profUseful > 0 && (
+                    <span style={{ marginLeft: "8px", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", color: "#6b5c4e", fontWeight: 600 }}>
+                      {["", "Not useful", "Slightly useful", "Moderately useful", "Very useful", "Extremely useful"][profUseful]}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Q3: Most valuable sections (multi-select) */}
+              <div>
+                <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#8b6634", marginBottom: "14px" }}>
+                  3 — Which sections were most valuable to you? <span style={{ color: "#9c8878", textTransform: "none", letterSpacing: 0, fontSize: "11px" }}>(select all that apply)</span>
+                </p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                  {["Industry Overview & Segments", "Income Statement & Key Metrics", "Same-Store Sales Analysis", "EBITDA & Financial Returns", "Development & Unit Economics", "Franchising", "Key Accounting Changes"].map(opt => (
+                    <button key={opt} type="button" onClick={() => toggleProfSection(opt)}
+                      style={{ padding: "12px 20px", border: "2px solid", borderColor: profSections.includes(opt) ? "#1a1209" : "#d0c4b8", background: profSections.includes(opt) ? "#1a1209" : "#fff", color: profSections.includes(opt) ? "#fff" : "#6b5c4e", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", cursor: "pointer", fontWeight: profSections.includes(opt) ? 700 : 400, transition: "all .15s" }}
+                    >{opt}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Q4: Clarity */}
+              <div>
+                <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#8b6634", marginBottom: "14px" }}>
+                  4 — How would you rate the clarity of the financial concepts explained?
+                </p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                  {["Very Clear", "Mostly Clear", "Somewhat Unclear", "Unclear"].map(opt => (
+                    <button key={opt} type="button" onClick={() => setProfClarity(opt)}
+                      style={{ padding: "12px 24px", border: "2px solid", borderColor: profClarity === opt ? "#1a1209" : "#d0c4b8", background: profClarity === opt ? "#1a1209" : "#fff", color: profClarity === opt ? "#fff" : "#6b5c4e", fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "11px", letterSpacing: "0.08em", cursor: "pointer", fontWeight: profClarity === opt ? 700 : 400, transition: "all .15s" }}
+                    >{opt}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Q5: Future topics */}
+              <div>
+                <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#8b6634", marginBottom: "14px" }}>
+                  5 — What topics would you like to see added or expanded? <span style={{ color: "#9c8878", textTransform: "none", letterSpacing: 0, fontSize: "11px" }}>(optional)</span>
+                </p>
+                <textarea rows={3} value={profTopics} onChange={e => setProfTopics(e.target.value)}
+                  placeholder="e.g. labor cost benchmarks, lease negotiation, technology stack..."
+                  style={{ width: "100%", background: "#fff", border: "2px solid #d0c4b8", color: "#1a1209", padding: "14px 18px", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", outline: "none", resize: "vertical" }}
+                />
+              </div>
+
+              {/* Q6: Would recommend */}
+              <div>
+                <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#8b6634", marginBottom: "14px" }}>
+                  6 — Would you recommend the Restaurant Primer to a colleague?
+                </p>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  {["Yes", "No", "Maybe"].map(opt => (
+                    <button key={opt} type="button" onClick={() => setProfRecommend(opt)}
+                      style={{ flex: 1, padding: "14px", border: "2px solid", borderColor: profRecommend === opt ? "#1a1209" : "#d0c4b8", background: profRecommend === opt ? "#1a1209" : "#fff", color: profRecommend === opt ? "#fff" : "#6b5c4e", fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "11px", letterSpacing: "0.1em", cursor: "pointer", fontWeight: profRecommend === opt ? 700 : 400, transition: "all .15s" }}
+                    >{opt}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Q7: Other feedback */}
+              <div>
+                <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#8b6634", marginBottom: "14px" }}>
+                  7 — Any other feedback? <span style={{ color: "#9c8878", textTransform: "none", letterSpacing: 0, fontSize: "11px" }}>(optional)</span>
+                </p>
+                <textarea rows={4} value={profHeard} onChange={e => setProfHeard(e.target.value)}
+                  placeholder="Share any additional thoughts, suggestions, or comments..."
+                  style={{ width: "100%", background: "#fff", border: "2px solid #d0c4b8", color: "#1a1209", padding: "14px 18px", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", outline: "none", resize: "vertical" }}
+                />
+              </div>
+
+              {profStatus === "error" && (
+                <p style={{ color: "#c0392b", fontSize: "13px" }}>Something went wrong. Please try again.</p>
+              )}
+
+              <button type="submit"
+                disabled={!profRole || !profUseful || !profClarity || !profRecommend || profStatus === "loading"}
+                style={{
+                  background: (!profRole || !profUseful || !profClarity || !profRecommend || profStatus === "loading") ? "#d0c4b8" : "#1a1209",
+                  border: "none",
+                  color: (!profRole || !profUseful || !profClarity || !profRecommend || profStatus === "loading") ? "#9c8878" : "#fff",
+                  padding: "18px",
+                  fontFamily: "'Montserrat', Arial, sans-serif",
+                  fontSize: "12px", letterSpacing: "0.16em", textTransform: "uppercase",
+                  fontWeight: 700,
+                  cursor: (!profRole || !profUseful || !profClarity || !profRecommend) ? "not-allowed" : "pointer",
+                  transition: "background .2s, color .2s",
+                }}
+              >
+                {profStatus === "loading" ? "Submitting..." : "Submit Feedback"}
+              </button>
+            </form>
           )}
         </div>
       </section>
