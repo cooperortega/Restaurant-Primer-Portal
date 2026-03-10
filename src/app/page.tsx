@@ -26,7 +26,6 @@ export default function HomePage() {
   // Professional feedback survey state
   const [profRole, setProfRole] = useState("");
   const [profUseful, setProfUseful] = useState(0);
-  const [profUsefulHover, setProfUsefulHover] = useState(0);
   const [profSections, setProfSections] = useState<string[]>([]);
   const [profClarity, setProfClarity] = useState("");
   const [profTopics, setProfTopics] = useState("");
