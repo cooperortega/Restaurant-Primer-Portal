@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
 import { getSession, setSession } from "@/lib/session";
@@ -16,11 +16,14 @@ interface ViewerData {
 
 function NewsletterViewer() {
   const params = useSearchParams();
+  const router = useRouter();
   const token = params.get("token");
+  const showWelcome = params.get("welcome") === "1";
 
   const [data, setData] = useState<ViewerData | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [isAdminUser, setIsAdminUser] = useState(false);
+  const [welcomeOpen, setWelcomeOpen] = useState(false);
 
   useEffect(() => {
     setIsAdminUser(document.cookie.split(";").some(c => c.trim() === "is_admin=1"));
@@ -58,6 +61,18 @@ function NewsletterViewer() {
     }
   }, [token]);
 
+  // Show welcome popup for new registrants and strip the param from the URL
+  useEffect(() => {
+    if (showWelcome && status === "ready") {
+      setWelcomeOpen(true);
+      router.replace("/view");
+    }
+  }, [showWelcome, status, router]);
+
+  function dismissWelcome() {
+    setWelcomeOpen(false);
+  }
+
   if (status === "loading") {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#f8f5f1", color: "#9c8878", fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "14px", letterSpacing: "0.06em" }}>
@@ -83,6 +98,74 @@ function NewsletterViewer() {
 
   return (
     <div style={{ background: "#f8f5f1", height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+
+      {/* Welcome popup */}
+      {welcomeOpen && (
+        <div
+          onClick={dismissWelcome}
+          style={{
+            position: "fixed", inset: 0, zIndex: 1000,
+            background: "rgba(26,18,9,0.55)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "24px",
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: "#fff",
+              border: "1px solid #e0d6ca",
+              maxWidth: "480px",
+              width: "100%",
+              padding: "48px 44px 40px",
+              textAlign: "center",
+              boxShadow: "0 8px 40px rgba(0,0,0,0.18)",
+              position: "relative",
+            }}
+          >
+            <button
+              onClick={dismissWelcome}
+              aria-label="Close"
+              style={{
+                position: "absolute", top: "16px", right: "18px",
+                background: "none", border: "none", cursor: "pointer",
+                color: "#9c8878", fontSize: "20px", lineHeight: 1, padding: 0,
+              }}
+            >
+              ×
+            </button>
+
+            <p style={{ fontFamily: "'Montserrat', Arial, sans-serif", fontSize: "9px", letterSpacing: "0.22em", textTransform: "uppercase", color: "#8b6634", marginBottom: "16px" }}>
+              Welcome
+            </p>
+            <p style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "26px", fontWeight: 400, color: "#1a1209", margin: "0 0 10px" }}>
+              Welcome, {data?.name.split(" ")[0]}.
+            </p>
+            <div style={{ width: "32px", height: "2px", background: "#8b6634", margin: "0 auto 24px" }} />
+            <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "15px", color: "#4a3728", lineHeight: 1.75, marginBottom: "20px" }}>
+              We've sent a copy of the <strong>2026 Restaurant Primer</strong> to{" "}
+              <span style={{ color: "#1a1209", fontWeight: 600 }}>{data?.email}</span> with the PDF attached.
+            </p>
+            <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "13px", color: "#9c8878", lineHeight: 1.65, marginBottom: "32px" }}>
+              Don't see it? Check your <strong>spam or junk folder</strong> — it may have landed there.
+            </p>
+            <button
+              onClick={dismissWelcome}
+              style={{
+                background: "#1a1209", border: "none", color: "#fff",
+                padding: "14px 40px",
+                fontFamily: "'Montserrat', Arial, sans-serif",
+                fontSize: "11px", letterSpacing: "0.14em", textTransform: "uppercase",
+                fontWeight: 700, cursor: "pointer",
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = "#3a2a1a")}
+              onMouseLeave={e => (e.currentTarget.style.background = "#1a1209")}
+            >
+              Start Reading
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Top bar */}
       <header style={{

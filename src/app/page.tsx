@@ -88,7 +88,7 @@ export default function HomePage() {
     } else if (res.ok) {
       setSession({ name: data.name, email: data.email });
       setSessionState({ name: data.name, email: data.email });
-      router.push("/view");
+      router.push(data.isNewSubscriber ? "/view?welcome=1" : "/view");
     } else {
       setNlStatus("error");
       setNlError(data.error ?? "Something went wrong. Please try again.");

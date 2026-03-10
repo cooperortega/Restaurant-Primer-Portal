@@ -118,6 +118,7 @@ export async function POST(req: NextRequest) {
     email: subscriber.email,
     newsletterId: newsletter.id,
     isAdmin,
+    isNewSubscriber,
   });
 
   if (isAdmin) {
