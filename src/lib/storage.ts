@@ -144,6 +144,10 @@ export const db = {
       await writeData("subscribers", all);
       return sub;
     },
+    remove: async (id: string): Promise<void> => {
+      const all = await readData<Subscriber[]>("subscribers", []);
+      await writeData("subscribers", all.filter((s) => s.id !== id));
+    },
   },
 
   newsletters: {

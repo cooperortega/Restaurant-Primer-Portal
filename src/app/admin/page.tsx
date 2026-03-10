@@ -108,6 +108,7 @@ export default function AdminDashboard() {
   const [tab, setTab] = useState<Tab>("overview");
   const [logs, setLogs] = useState<Log[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [inviteStatus, setInviteStatus] = useState<Record<string, "loading" | "sent" | "error">>({});
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [accessRequests, setAccessRequests] = useState<AccessRequest[]>([]);
   const [requestActionStatus, setRequestActionStatus] = useState<Record<string, "loading" | "done" | "error">>({});
@@ -126,7 +127,8 @@ export default function AdminDashboard() {
   // Generate link form
   const [genMode, setGenMode] = useState<"existing" | "new">("existing");
   const [genSubId, setGenSubId] = useState("");
-  const [genName, setGenName] = useState("");
+  const [genFirstName, setGenFirstName] = useState("");
+  const [genLastName, setGenLastName] = useState("");
   const [genEmail, setGenEmail] = useState("");
   const [genResult, setGenResult] = useState<GeneratedLink | null>(null);
   const [genStatus, setGenStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
@@ -188,7 +190,7 @@ export default function AdminDashboard() {
     setGenResult(null);
     const body = genMode === "existing"
       ? { subscriberId: genSubId }
-      : { name: genName, email: genEmail };
+      : { name: `${genFirstName.trim()} ${genLastName.trim()}`.trim(), email: genEmail };
     const res = await fetch("/api/admin/generate-link", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -661,12 +663,35 @@ export default function AdminDashboard() {
                             {sub.totalOpens > 0 ? "Opened" : "Pending"}
                           </span>
                         </td>
-                        <td style={S.td}>
+                        <td style={{ ...S.td, whiteSpace: "nowrap" }}>
                           <button
                             onClick={() => openEmailModal([sub.id], sub.name)}
-                            style={{ ...S.btn, fontSize: "9px", padding: "6px 12px", background: "#8b6634" }}
+                            style={{ ...S.btn, fontSize: "9px", padding: "6px 12px", background: "#8b6634", marginRight: "6px" }}
                           >
                             ✉ Send Email
+                          </button>
+                          <button
+                            disabled={inviteStatus[sub.id] === "loading" || inviteStatus[sub.id] === "sent"}
+                            onClick={async () => {
+                              setInviteStatus(prev => ({ ...prev, [sub.id]: "loading" }));
+                              const res = await fetch("/api/admin/subscribers", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: sub.id }) });
+                              setInviteStatus(prev => ({ ...prev, [sub.id]: res.ok ? "sent" : "error" }));
+                            }}
+                            style={{ ...S.btn, fontSize: "9px", padding: "6px 12px", marginRight: "6px",
+                              background: inviteStatus[sub.id] === "sent" ? "#4caf50" : inviteStatus[sub.id] === "error" ? "#c0392b" : "#1a1209",
+                              opacity: inviteStatus[sub.id] === "loading" ? 0.6 : 1 }}
+                          >
+                            {inviteStatus[sub.id] === "loading" ? "Sending..." : inviteStatus[sub.id] === "sent" ? "Invited!" : inviteStatus[sub.id] === "error" ? "Failed" : "Invite"}
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (!confirm(`Remove ${sub.name} from subscribers?`)) return;
+                              await fetch("/api/admin/subscribers", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: sub.id }) });
+                              setSubscribers(prev => prev.filter(s => s.id !== sub.id));
+                            }}
+                            style={{ ...S.btn, fontSize: "9px", padding: "6px 12px", background: "#c0392b" }}
+                          >
+                            Remove
                           </button>
                         </td>
                       </tr>
@@ -958,9 +983,15 @@ export default function AdminDashboard() {
                     </div>
                   ) : (
                     <>
-                      <div>
-                        <label style={{ fontSize: "11px", color: "#8b6634", letterSpacing: "0.06em", display: "block", marginBottom: "8px" }}>FULL NAME</label>
-                        <input type="text" required value={genName} onChange={e => setGenName(e.target.value)} placeholder="e.g. Jane Smith" style={S.input} />
+                      <div style={{ display: "flex", gap: "10px" }}>
+                        <div style={{ flex: 1 }}>
+                          <label style={{ fontSize: "11px", color: "#8b6634", letterSpacing: "0.06em", display: "block", marginBottom: "8px" }}>FIRST NAME</label>
+                          <input type="text" required value={genFirstName} onChange={e => setGenFirstName(e.target.value)} placeholder="Jane" style={S.input} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <label style={{ fontSize: "11px", color: "#8b6634", letterSpacing: "0.06em", display: "block", marginBottom: "8px" }}>LAST NAME</label>
+                          <input type="text" required value={genLastName} onChange={e => setGenLastName(e.target.value)} placeholder="Smith" style={S.input} />
+                        </div>
                       </div>
                       <div>
                         <label style={{ fontSize: "11px", color: "#8b6634", letterSpacing: "0.06em", display: "block", marginBottom: "8px" }}>EMAIL ADDRESS</label>

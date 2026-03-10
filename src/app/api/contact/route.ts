@@ -14,6 +14,19 @@ export async function POST(req: NextRequest) {
   if (!name?.trim() || !email?.trim())
     return NextResponse.json({ error: "Name and email are required." }, { status: 400 });
 
+  const normalizedEmail = email.trim().toLowerCase();
+
+  // Already a subscriber — no need to create an access request
+  const existingSub = await db.subscribers.getByEmail(normalizedEmail);
+  if (existingSub)
+    return NextResponse.json({ ok: true, alreadySubscriber: true });
+
+  // Deduplicate — return existing pending/added request if one already exists
+  const allRequests = await db.accessRequests.getAll();
+  const duplicate = allRequests.find(r => r.email.toLowerCase() === normalizedEmail && r.status !== "dismissed");
+  if (duplicate)
+    return NextResponse.json({ ok: true, id: duplicate.id });
+
   const accessReq = await db.accessRequests.create(name.trim(), email.trim(), message?.trim() ?? "");
 
   const fromAddress = process.env.RESEND_FROM_EMAIL ?? "Restaurant Primer <admin@restaurantprimer.com>";
