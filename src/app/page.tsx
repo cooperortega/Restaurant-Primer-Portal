@@ -231,7 +231,7 @@ export default function HomePage() {
           <p style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif", fontSize: "16px", color: "#6b5c4e", lineHeight: 1.8, marginBottom: "48px" }}>
             {session
               ? "Click below to access the Primer."
-              : "Enter your email address below to access the latest issue — or click the personalized link in your invitation email."}
+              : "Enter your email address below to access the updated Restaurant Primer — or click the personalized link in your invitation email."}
           </p>
 
           {session ? (
