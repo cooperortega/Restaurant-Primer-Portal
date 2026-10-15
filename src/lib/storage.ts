@@ -61,6 +61,15 @@ async function writeData<T>(key: string, data: T): Promise<void> {
   }
 }
 
+// Free Upstash databases are deleted after 14 days of inactivity; the daily
+// cron at /api/cron/keepalive calls this so the database always sees traffic.
+export async function pingDatabase(): Promise<string> {
+  if (!useRedis) throw new Error("Upstash Redis is not configured.");
+  const now = new Date().toISOString();
+  await getRedis().set("keepalive", now);
+  return now;
+}
+
 export interface Subscriber {
   id: string;
   name: string;
